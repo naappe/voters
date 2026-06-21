@@ -424,7 +424,7 @@
                     <span id="userInfo" style="color:#6b7280;font-size:0.875rem;"></span>
                     <button class="btn btn-success" onclick="exportCSV()">📤 Export</button>
                     <button class="btn btn-primary" onclick="openModal()">➕ Add</button>
-                    <button class="btn btn-primary" onclick="window.location.href='/mobile.html'">📱 Mobile</button>
+                    <button class="btn btn-primary" onclick="window.location.href='mobile.html'">📱 Mobile</button>
                 </div>
             </header>
 
@@ -535,7 +535,7 @@
 
     <script>
         // ============================================
-        // SUPABASE CONFIG - TABLE: voters
+        // SUPABASE CONFIG - CONNECTS TO YOUR DATABASE
         // ============================================
         const supabase = supabaseClient.createClient(
             'https://sbomlqemmtcfahtgllzx.supabase.co',
@@ -584,12 +584,12 @@
         }
 
         // ============================================
-        // LOAD VOTERS FROM TABLE: voters
+        // LOAD VOTERS
         // ============================================
         async function loadVoters() {
             try {
                 const { data, error } = await supabase
-                    .from('voters')  // ← TABLE NAME
+                    .from('voters')
                     .select('*')
                     .order('created_at', { ascending: false });
                 if (error) throw error;
@@ -598,7 +598,7 @@
                 populatePartyFilter();
                 updateDashboard();
                 renderTable();
-                console.log('✅ Loaded', allVoters.length, 'voters from table: voters');
+                console.log('✅ Loaded', allVoters.length, 'voters');
             } catch (error) {
                 console.error('Error loading voters:', error);
                 showToast('Error loading voters: ' + error.message, 'error');
@@ -882,7 +882,7 @@
             .subscribe();
 
         console.log('🗳️ Voter Campaign App Loaded!');
-        console.log('📊 Table: voters - Ready!');
+        console.log('📊 Ready!');
     </script>
 
 </body>

@@ -74,20 +74,10 @@
         .btn-blue:hover {
             background: #2563eb;
         }
-        .btn-red {
-            background: #ef4444;
-            color: white;
-        }
-        .btn-red:hover {
-            background: #dc2626;
-        }
-
         .user-info {
             color: #94a3b8;
             font-size: 14px;
         }
-
-        /* Dashboard Cards */
         .cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -137,8 +127,6 @@
         .card .number.teal {
             color: #14b8a6;
         }
-
-        /* Filters */
         .filters {
             background: white;
             padding: 15px 20px;
@@ -165,8 +153,6 @@
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
-
-        /* Table */
         .table-container {
             background: white;
             border-radius: 12px;
@@ -196,7 +182,6 @@
         tr:hover {
             background: #f8fafc;
         }
-
         .status {
             padding: 4px 14px;
             border-radius: 20px;
@@ -232,7 +217,6 @@
             background: #e0e7ff;
             color: #3730a3;
         }
-
         .actions {
             display: flex;
             gap: 5px;
@@ -274,7 +258,6 @@
             background: #dbeafe;
             color: #1e40af;
         }
-
         .pagination {
             display: flex;
             justify-content: space-between;
@@ -298,14 +281,11 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
-
         .loading {
             text-align: center;
             padding: 40px;
             color: #6b7280;
         }
-
-        /* Toast */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -338,8 +318,6 @@
                 opacity: 1;
             }
         }
-
-        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -425,14 +403,6 @@
             font-weight: 600;
             font-size: 14px;
         }
-
-        .photo {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
         @media (max-width: 768px) {
             body {
                 padding: 10px;
@@ -475,19 +445,16 @@
 <body>
 
     <div class="container">
-        <!-- HEADER -->
         <header class="header">
             <h1>🗳️ CampaignHQ</h1>
             <div class="header-actions">
                 <span class="user-info" id="userInfo"></span>
                 <button class="btn-white" onclick="exportCSV()">📤 Export</button>
                 <button class="btn-green" onclick="openModal()">➕ Add</button>
-                <button class="btn-blue" onclick="window.location.href='mobile.html'">📱 Mobile</button>
             </div>
         </header>
 
-        <!-- DASHBOARD CARDS -->
-        <div class="cards" id="kpiCards">
+        <div class="cards">
             <div class="card"><div class="number blue" id="total">0</div><div class="label">Total Voters</div></div>
             <div class="card"><div class="number green" id="supporters">0</div><div class="label">Supporters</div></div>
             <div class="card"><div class="number red" id="opposition">0</div><div class="label">Opposition</div></div>
@@ -498,7 +465,6 @@
             <div class="card"><div class="number purple" id="absent">0</div><div class="label">Absent</div></div>
         </div>
 
-        <!-- FILTERS -->
         <div class="filters">
             <input type="text" id="searchName" placeholder="🔍 Search by name..." oninput="applyFilters()">
             <input type="text" id="searchDistrict" placeholder="📍 District..." oninput="applyFilters()">
@@ -516,7 +482,6 @@
             <button style="background:#e5e7eb;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;" onclick="clearFilters()">Clear</button>
         </div>
 
-        <!-- TABLE -->
         <div class="table-container">
             <table>
                 <thead>
@@ -545,7 +510,6 @@
         </div>
     </div>
 
-    <!-- MODAL -->
     <div id="modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
@@ -590,17 +554,20 @@
         </div>
     </div>
 
-    <!-- TOAST -->
     <div id="toast" class="toast"></div>
 
     <script>
         // ============================================
-        // SUPABASE CONFIG
+        // ✅ CORRECT SUPABASE CREDENTIALS
         // ============================================
-        const SUPABASE_URL = 'https://sbomlqemmtcfahgtllzx.supabase.co';
+        const SUPABASE_URL = 'https://sbomlqemmtcfahtgllzx.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_tU-qC7J1igIq0R_UM1_COA_F-uVpA9Y';
 
-        const supabase = supabaseClient.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // ✅ FIXED: Use window.supabase for v2
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        console.log('🔗 Supabase URL:', SUPABASE_URL);
+        console.log('🔑 Supabase Key:', SUPABASE_KEY.substring(0, 20) + '...');
 
         // ============================================
         // AUTH
@@ -626,7 +593,7 @@
                 showToast('✅ Logged in successfully!', 'success');
             } catch (error) {
                 console.error('Login error:', error);
-                document.getElementById('userInfo').textContent = '❌ Please login';
+                document.getElementById('userInfo').textContent = '❌ Login failed';
                 try {
                     const { data } = await supabase.auth.signUp({
                         email: EMAIL,
@@ -658,9 +625,10 @@
                 updateDashboard();
                 renderTable();
                 console.log('✅ Loaded', allVoters.length, 'voters');
+                showToast('✅ Loaded ' + allVoters.length + ' voters', 'success');
             } catch (error) {
-                console.error('Error:', error);
-                showToast('❌ Error loading: ' + error.message, 'error');
+                console.error('Error loading:', error);
+                showToast('❌ Error: ' + error.message, 'error');
                 document.getElementById('tableBody').innerHTML =
                     '<tr><td colspan="8" class="loading">❌ ' + error.message + '</td></tr>';
             }
@@ -732,7 +700,7 @@
         }
 
         // ============================================
-        // SET STATUS - ONE CLICK!
+        // SET STATUS
         // ============================================
         async function setStatus(id, status) {
             try {
@@ -840,7 +808,7 @@
                 status: document.getElementById('formStatus').value,
                 party: document.getElementById('formParty').value.trim(),
                 sex: document.getElementById('formSex').value.trim(),
-                age: parseInt(document.getElementById('formAge').value) || null,
+                age: document.getElementById('formAge').value || null,
                 photo: document.getElementById('formPhoto').value.trim(),
                 notes: document.getElementById('formNotes').value.trim(),
                 updated_at: new Date().toISOString()
@@ -877,7 +845,7 @@
         }
 
         // ============================================
-        // EDIT - Opens Modal
+        // EDIT
         // ============================================
         function editVoter(id) {
             const voter = allVoters.find(v => v.id === id);
@@ -929,6 +897,8 @@
 
         console.log('🗳️ CampaignHQ Loaded!');
         console.log('🔗 Supabase:', SUPABASE_URL);
+        console.log('🔑 Using window.supabase.createClient');
+        console.log('📊 Table: voters');
     </script>
 
 </body>

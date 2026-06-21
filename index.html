@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>CampaignHQ - Voter Management</title>
 <!-- Load Supabase library with onload callback -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onload="initializeSupabase()"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/supabase.min.js" onload="initializeSupabase()"></script>
 <style>
   /* Your existing styles here */
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; padding: 20px; }
   .container { max-width: 1400px; margin: 0 auto; }
-  /* (keep all your styles as is) */
-  /* ... [styles omitted for brevity; include all your original CSS here] ... */
+  /* (all your CSS styles remain unchanged) */
+  /* ... [styles omitted for brevity; include your original CSS here] ... */
 </style>
 </head>
 <body>
@@ -111,16 +111,15 @@
   </div>
 </div>
 
-<!-- Toast for notifications -->
+<!-- Toast Notification -->
 <div id="toast" class="toast"></div>
 
-<!-- Your scripts -->
 <script>
   // Your constants
   const SUPABASE_URL = 'https://sbomlqemmtcfahtgllzx.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_tU-qC7J1igIq0R_UM1_COA_F-uVpA9Y';
 
-  let supabase; // Will hold your client
+  let supabase; // will be initialized after script loads
   let allVoters = [];
   let filteredVoters = [];
   let currentPage = 0;
@@ -133,7 +132,7 @@
     autoLogin();
   }
 
-  // Auto login
+  // Login function
   async function autoLogin() {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email: 'admin@campaign.com', password: 'Campaign123!' });
@@ -147,7 +146,7 @@
       document.getElementById('userInfo').textContent = '❌ Login failed';
       showToast('❌ Login failed: ' + error.message, 'error');
       document.getElementById('tableBody').innerHTML =
-        `<tr><td colspan="8" class="loading">❌ Login failed: ${error.message}</td></tr>`;
+        `<tr><td colspan="8" class="loading">❌ ${error.message}</td></tr>`;
     }
   }
 
@@ -170,7 +169,6 @@
     }
   }
 
-  // Update dashboard counters
   function updateDashboard() {
     document.getElementById('total').textContent = allVoters.length;
     document.getElementById('supporters').textContent = allVoters.filter(v => v.status === 'Supporter').length;
@@ -182,7 +180,6 @@
     document.getElementById('absent').textContent = allVoters.filter(v => v.status === 'Absent').length;
   }
 
-  // Render table based on current page
   function renderTable() {
     const start = currentPage * PAGE_SIZE;
     const end = Math.min(start + PAGE_SIZE, filteredVoters.length);
@@ -223,7 +220,6 @@
     document.getElementById('nextBtn').disabled = currentPage >= Math.ceil(filteredVoters.length / PAGE_SIZE) - 1;
   }
 
-  // Set voter status
   async function setStatus(id, status) {
     try {
       const { error } = await supabase.from('voters').update({ status, updated_at: new Date().toISOString() }).eq('id', id);
@@ -235,7 +231,6 @@
     }
   }
 
-  // Filters
   function applyFilters() {
     const name = document.getElementById('searchName').value.toLowerCase().trim();
     const district = document.getElementById('searchDistrict').value.toLowerCase().trim();
@@ -264,7 +259,6 @@
   function prevPage() { if (currentPage > 0) { currentPage--; renderTable(); } }
   function nextPage() { const totalPages = Math.ceil(filteredVoters.length / PAGE_SIZE); if (currentPage < totalPages - 1) { currentPage++; renderTable(); } }
 
-  // Modal functions
   function openModal(voter = null) {
     const modal = document.getElementById('modal');
     modal.classList.add('active');
@@ -290,7 +284,6 @@
   }
   function closeModal() { document.getElementById('modal').classList.remove('active'); }
 
-  // Handle form submit
   async function handleSubmit(e) {
     e.preventDefault();
     const id = document.getElementById('editId').value;
@@ -323,7 +316,6 @@
     }
   }
 
-  // Delete voter
   async function deleteVoter(id) {
     if (!confirm('Delete this voter?')) return;
     try {
@@ -364,9 +356,9 @@
     toast.timeout = setTimeout(() => { toast.style.display = 'none'; }, 3000);
   }
 
-  // Run autoLogin after DOM content loaded
+  // Run autoLogin after DOM content loaded (supabase initialized)
   document.addEventListener('DOMContentLoaded', () => {
-    // The actual supabase initialization and login will be triggered by the script's onload
+    // The actual login will be triggered once the script loads and calls initializeSupabase()
   });
 </script>
 </body>

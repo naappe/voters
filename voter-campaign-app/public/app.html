@@ -535,7 +535,7 @@
 
     <script>
         // ============================================
-        // SUPABASE CONFIG - ONLY ONE DECLARATION!
+        // SUPABASE CONFIG - TABLE: voters
         // ============================================
         const supabase = supabaseClient.createClient(
             'https://sbomlqemmtcfahtgllzx.supabase.co',
@@ -561,12 +561,13 @@
                 });
                 if (error) throw error;
                 localStorage.setItem('user', JSON.stringify(data.user));
-                document.getElementById('userInfo').textContent = data.user.email || '';
+                document.getElementById('userInfo').textContent = '✅ ' + data.user.email;
                 loadVoters();
                 showToast('✅ Logged in as ' + data.user.email, 'success');
             } catch (error) {
                 console.error('Auto-login failed:', error);
                 showToast('❌ Login failed: ' + error.message, 'error');
+                // Try to create user
                 try {
                     const { data } = await supabase.auth.signUp({
                         email: EMAIL,
@@ -582,10 +583,13 @@
             }
         }
 
+        // ============================================
+        // LOAD VOTERS FROM TABLE: voters
+        // ============================================
         async function loadVoters() {
             try {
                 const { data, error } = await supabase
-                    .from('voters')
+                    .from('voters')  // ← TABLE NAME
                     .select('*')
                     .order('created_at', { ascending: false });
                 if (error) throw error;
@@ -594,20 +598,22 @@
                 populatePartyFilter();
                 updateDashboard();
                 renderTable();
+                console.log('✅ Loaded', allVoters.length, 'voters from table: voters');
             } catch (error) {
                 console.error('Error loading voters:', error);
                 showToast('Error loading voters: ' + error.message, 'error');
             }
         }
 
+        // ============================================
+        // UPDATE DASHBOARD
+        // ============================================
         function updateDashboard() {
             const total = allVoters.length;
-            const reached = allVoters.filter(v => v.status && v.status !== 'Not Contacted' && v.status !== 'undecided')
-                .length;
+            const reached = allVoters.filter(v => v.status && v.status !== 'Not Contacted' && v.status !== 'undecided' && v.status !== 'not contacted').length;
             const supporters = allVoters.filter(v => v.status === 'Supporter' || v.status === 'supporter').length;
             const undecided = allVoters.filter(v => v.status === 'Undecided' || v.status === 'undecided').length;
-            const notContacted = allVoters.filter(v => !v.status || v.status === 'Not Contacted' || v.status ===
-                'not contacted').length;
+            const notContacted = allVoters.filter(v => !v.status || v.status === 'Not Contacted' || v.status === 'not contacted' || v.status === 'undecided').length;
             const opposition = allVoters.filter(v => v.status === 'Opposition' || v.status === 'opposition').length;
 
             document.getElementById('totalVoters').textContent = total;
@@ -618,6 +624,9 @@
             document.getElementById('oppositionCount').textContent = opposition;
         }
 
+        // ============================================
+        // POPULATE PARTY FILTER
+        // ============================================
         function populatePartyFilter() {
             const parties = [...new Set(allVoters.map(v => v.party).filter(p => p))].sort();
             const select = document.getElementById('filterParty');
@@ -625,6 +634,9 @@
                 parties.map(p => `<option value="${p}">${p}</option>`).join('');
         }
 
+        // ============================================
+        // RENDER TABLE
+        // ============================================
         function renderTable() {
             const start = currentPage * pageSize;
             const end = Math.min(start + pageSize, filteredVoters.length);
@@ -663,6 +675,9 @@
             document.getElementById('nextBtn').disabled = currentPage >= Math.ceil(filteredVoters.length / pageSize) - 1;
         }
 
+        // ============================================
+        // FILTERS
+        // ============================================
         function applyFilters() {
             const name = document.getElementById('searchName').value.toLowerCase().trim();
             const district = document.getElementById('searchDistrict').value.toLowerCase().trim();
@@ -692,6 +707,9 @@
             renderTable();
         }
 
+        // ============================================
+        // PAGINATION
+        // ============================================
         function prevPage() {
             if (currentPage > 0) { currentPage--;
                 renderTable(); }
@@ -703,6 +721,9 @@
                 renderTable(); }
         }
 
+        // ============================================
+        // MODAL
+        // ============================================
         function openModal(voter = null) {
             const modal = document.getElementById('modal');
             modal.classList.add('active');
@@ -734,6 +755,9 @@
             document.getElementById('modal').classList.remove('active');
         }
 
+        // ============================================
+        // FORM SUBMIT
+        // ============================================
         async function handleSubmit(e) {
             e.preventDefault();
             const id = document.getElementById('editId').value;
@@ -769,6 +793,9 @@
             }
         }
 
+        // ============================================
+        // DELETE VOTER
+        // ============================================
         async function deleteVoter(id) {
             if (!confirm('Delete this voter?')) return;
             try {
@@ -780,11 +807,17 @@
             }
         }
 
+        // ============================================
+        // EDIT VOTER
+        // ============================================
         function editVoter(id) {
             const voter = allVoters.find(v => v.id === id);
             if (voter) openModal(voter);
         }
 
+        // ============================================
+        // EXPORT CSV
+        // ============================================
         function exportCSV() {
             if (filteredVoters.length === 0) {
                 showToast('No data to export', 'error');
@@ -809,6 +842,9 @@
             showToast('📤 Export successful!', 'success');
         }
 
+        // ============================================
+        // TOAST
+        // ============================================
         function showToast(message, type = 'info') {
             const toast = document.getElementById('toast');
             toast.textContent = message;
@@ -846,7 +882,7 @@
             .subscribe();
 
         console.log('🗳️ Voter Campaign App Loaded!');
-        console.log('📊 Your voters are ready!');
+        console.log('📊 Table: voters - Ready!');
     </script>
 
 </body>

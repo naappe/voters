@@ -35,9 +35,6 @@
         }
         .header h1 {
             font-size: 24px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
         .header-actions {
             display: flex;
@@ -51,35 +48,22 @@
             cursor: pointer;
             font-weight: 600;
             font-size: 14px;
-            transition: all 0.2s;
         }
         .btn-white {
             background: white;
             color: #1a1a2e;
         }
-        .btn-white:hover {
-            background: #e5e7eb;
-        }
         .btn-green {
             background: #22c55e;
             color: white;
-        }
-        .btn-green:hover {
-            background: #16a34a;
         }
         .btn-blue {
             background: #3b82f6;
             color: white;
         }
-        .btn-blue:hover {
-            background: #2563eb;
-        }
         .btn-red {
             background: #ef4444;
             color: white;
-        }
-        .btn-red:hover {
-            background: #dc2626;
         }
         .user-info {
             color: #94a3b8;
@@ -87,7 +71,7 @@
         }
         .cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 15px;
             margin-bottom: 25px;
         }
@@ -98,46 +82,40 @@
             text-align: center;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             border-left: 4px solid #3b82f6;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .card:hover {
-            transform: translateY(-2px);
         }
         .card .number {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
         }
         .card .label {
-            font-size: 12px;
+            font-size: 11px;
             color: #6b7280;
             text-transform: uppercase;
             font-weight: 600;
-            letter-spacing: 0.5px;
         }
-        .card .number.blue {
+        .number.blue {
             color: #3b82f6;
         }
-        .card .number.green {
+        .number.green {
             color: #22c55e;
         }
-        .card .number.purple {
-            color: #8b5cf6;
-        }
-        .card .number.yellow {
-            color: #f59e0b;
-        }
-        .card .number.gray {
-            color: #6b7280;
-        }
-        .card .number.red {
+        .number.red {
             color: #ef4444;
         }
-        .card .number.orange {
+        .number.yellow {
+            color: #f59e0b;
+        }
+        .number.gray {
+            color: #6b7280;
+        }
+        .number.teal {
+            color: #14b8a6;
+        }
+        .number.orange {
             color: #f97316;
         }
-        .card .number.teal {
-            color: #14b8a6;
+        .number.purple {
+            color: #8b5cf6;
         }
         .filters {
             background: white;
@@ -159,16 +137,6 @@
             min-width: 150px;
             font-size: 14px;
         }
-        .filters input:focus,
-        .filters select:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-        .filter-buttons {
-            display: flex;
-            gap: 8px;
-        }
         .table-container {
             background: white;
             border-radius: 12px;
@@ -186,14 +154,11 @@
             padding: 12px 16px;
             text-align: left;
             font-weight: 600;
-            color: #1e293b;
             border-bottom: 2px solid #e2e8f0;
-            white-space: nowrap;
         }
         td {
             padding: 10px 16px;
             border-bottom: 1px solid #f1f5f9;
-            vertical-align: middle;
         }
         tr:hover {
             background: #f8fafc;
@@ -245,10 +210,6 @@
             cursor: pointer;
             font-size: 12px;
             font-weight: 500;
-            transition: all 0.2s;
-        }
-        .actions button:hover {
-            transform: scale(1.05);
         }
         .btn-edit {
             background: #dbeafe;
@@ -298,9 +259,6 @@
             cursor: pointer;
             font-weight: 500;
         }
-        .pagination button:hover {
-            background: #f3f4f6;
-        }
         .pagination button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -321,26 +279,12 @@
             display: none;
             z-index: 999;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            animation: slideIn 0.3s ease;
-        }
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
         }
         .toast.success {
             background: #22c55e;
         }
         .toast.error {
             background: #ef4444;
-        }
-        .toast.info {
-            background: #3b82f6;
         }
         .modal {
             display: none;
@@ -363,21 +307,6 @@
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
-            animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-        .modal-content h2 {
-            margin-bottom: 20px;
-            color: #1a1a2e;
         }
         .modal-content .close {
             float: right;
@@ -385,15 +314,11 @@
             cursor: pointer;
             color: #6b7280;
         }
-        .modal-content .close:hover {
-            color: #1a1a2e;
-        }
         .modal-content label {
             display: block;
             font-weight: 600;
             margin-bottom: 5px;
             font-size: 14px;
-            color: #374151;
         }
         .modal-content input,
         .modal-content select,
@@ -405,13 +330,6 @@
             margin-bottom: 15px;
             font-size: 14px;
             font-family: inherit;
-        }
-        .modal-content input:focus,
-        .modal-content select:focus,
-        .modal-content textarea:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
         .modal-actions {
             display: flex;
@@ -434,7 +352,6 @@
             .header {
                 padding: 15px 20px;
                 flex-direction: column;
-                align-items: stretch;
                 text-align: center;
             }
             .header-actions {
@@ -456,20 +373,12 @@
             .cards {
                 grid-template-columns: 1fr 1fr;
             }
-            .header h1 {
-                font-size: 18px;
-            }
-            .header-actions button {
-                font-size: 12px;
-                padding: 6px 12px;
-            }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- HEADER -->
         <header class="header">
             <h1>🗳️ CampaignHQ</h1>
             <div class="header-actions">
@@ -480,19 +389,17 @@
             </div>
         </header>
 
-        <!-- KPI CARDS -->
         <div class="cards">
-            <div class="card"><div class="number blue" id="total">0</div><div class="label">Total Voters</div></div>
+            <div class="card"><div class="number blue" id="total">0</div><div class="label">Total</div></div>
             <div class="card"><div class="number green" id="supporters">0</div><div class="label">Supporters</div></div>
             <div class="card"><div class="number red" id="opposition">0</div><div class="label">Opposition</div></div>
             <div class="card"><div class="number yellow" id="undecided">0</div><div class="label">Undecided</div></div>
             <div class="card"><div class="number teal" id="reached">0</div><div class="label">Reached</div></div>
             <div class="card"><div class="number gray" id="notContacted">0</div><div class="label">Not Contacted</div></div>
-            <div class="card"><div class="number orange" id="needFollowup">0</div><div class="label">Need Follow-up</div></div>
+            <div class="card"><div class="number orange" id="needFollowup">0</div><div class="label">Follow-up</div></div>
             <div class="card"><div class="number purple" id="absent">0</div><div class="label">Absent</div></div>
         </div>
 
-        <!-- FILTERS -->
         <div class="filters">
             <input type="text" id="searchName" placeholder="🔍 Search by name..." oninput="applyFilters()">
             <input type="text" id="searchDistrict" placeholder="📍 District..." oninput="applyFilters()">
@@ -506,16 +413,10 @@
                 <option value="Need Follow-up">Need Follow-up</option>
                 <option value="Absent">Absent</option>
             </select>
-            <select id="filterParty" onchange="applyFilters()">
-                <option value="">All Parties</option>
-            </select>
-            <div class="filter-buttons">
-                <button class="btn-blue" onclick="applyFilters()">Apply</button>
-                <button style="background:#e5e7eb;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;" onclick="clearFilters()">Clear</button>
-            </div>
+            <button class="btn-blue" onclick="applyFilters()">Apply</button>
+            <button style="background:#e5e7eb;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;" onclick="clearFilters()">Clear</button>
         </div>
 
-        <!-- TABLE -->
         <div class="table-container">
             <table>
                 <thead>
@@ -544,7 +445,6 @@
         </div>
     </div>
 
-    <!-- MODAL -->
     <div id="modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
@@ -577,8 +477,6 @@
                 <input type="text" id="formSex">
                 <label>Age</label>
                 <input type="number" id="formAge">
-                <label>Photo URL</label>
-                <input type="url" id="formPhoto">
                 <label>Notes</label>
                 <textarea id="formNotes" rows="3"></textarea>
                 <div class="modal-actions">
@@ -589,12 +487,11 @@
         </div>
     </div>
 
-    <!-- TOAST -->
     <div id="toast" class="toast"></div>
 
     <script>
         // ============================================
-        // SUPABASE CONFIG
+        // SUPABASE CONFIG - EXACTLY AS YOUR test.html
         // ============================================
         const SUPABASE_URL = 'https://sbomlqemmtcfahgtllzx.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_tU-qC7J1igIq0R_UM1_COA_F-uVpA9Y';
@@ -606,10 +503,12 @@
         }
 
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         console.log('✅ Supabase connected!');
+        console.log('🔗 URL:', SUPABASE_URL);
 
         // ============================================
-        // AUTH
+        // AUTH - SAME AS test.html
         // ============================================
         const EMAIL = 'admin@campaign.com';
         const PASSWORD = 'Campaign123!';
@@ -633,14 +532,14 @@
             } catch (error) {
                 console.error('Login error:', error);
                 document.getElementById('userInfo').textContent = '❌ Login failed';
-                showToast('❌ Login failed: ' + error.message + '. Create user in Supabase Auth.', 'error');
+                showToast('❌ Login failed: ' + error.message, 'error');
                 document.getElementById('tableBody').innerHTML =
                     `<tr><td colspan="8" class="loading">❌ Login failed: ${error.message}</td></tr>`;
             }
         }
 
         // ============================================
-        // LOAD ALL VOTERS
+        // LOAD VOTERS - SAME AS test.html
         // ============================================
         async function loadVoters() {
             try {
@@ -652,7 +551,6 @@
                 if (error) throw error;
                 allVoters = data || [];
                 filteredVoters = [...allVoters];
-                populatePartyFilter();
                 updateDashboard();
                 renderTable();
                 console.log('✅ Loaded', allVoters.length, 'voters');
@@ -663,16 +561,6 @@
                 document.getElementById('tableBody').innerHTML =
                     `<tr><td colspan="8" class="loading">❌ ${error.message}</td></tr>`;
             }
-        }
-
-        // ============================================
-        // POPULATE PARTY FILTER
-        // ============================================
-        function populatePartyFilter() {
-            const parties = [...new Set(allVoters.map(v => v.party).filter(p => p))].sort();
-            const select = document.getElementById('filterParty');
-            select.innerHTML = '<option value="">All Parties</option>' +
-                parties.map(p => `<option value="${p}">${p}</option>`).join('');
         }
 
         // ============================================
@@ -766,14 +654,12 @@
             const name = document.getElementById('searchName').value.toLowerCase().trim();
             const district = document.getElementById('searchDistrict').value.toLowerCase().trim();
             const status = document.getElementById('filterStatus').value;
-            const party = document.getElementById('filterParty').value;
 
             filteredVoters = allVoters.filter(v => {
                 let match = true;
                 if (name) match = match && (v.name || '').toLowerCase().includes(name);
                 if (district) match = match && (v.district || '').toLowerCase().includes(district);
                 if (status) match = match && (v.status || '') === status;
-                if (party) match = match && (v.party || '') === party;
                 return match;
             });
 
@@ -785,7 +671,6 @@
             document.getElementById('searchName').value = '';
             document.getElementById('searchDistrict').value = '';
             document.getElementById('filterStatus').value = '';
-            document.getElementById('filterParty').value = '';
             filteredVoters = [...allVoters];
             currentPage = 0;
             renderTable();
@@ -824,7 +709,6 @@
                 document.getElementById('formParty').value = voter.party || '';
                 document.getElementById('formSex').value = voter.sex || '';
                 document.getElementById('formAge').value = voter.age || '';
-                document.getElementById('formPhoto').value = voter.photo || '';
                 document.getElementById('formNotes').value = voter.notes || '';
             } else {
                 document.getElementById('modalTitle').textContent = 'Add Voter';
@@ -854,7 +738,6 @@
                 party: document.getElementById('formParty').value.trim(),
                 sex: document.getElementById('formSex').value.trim(),
                 age: document.getElementById('formAge').value || null,
-                photo: document.getElementById('formPhoto').value.trim(),
                 notes: document.getElementById('formNotes').value.trim(),
                 updated_at: new Date().toISOString()
             };
@@ -941,10 +824,7 @@
         document.addEventListener('DOMContentLoaded', autoLogin);
 
         console.log('🗳️ CampaignHQ Loaded!');
-        console.log('🔗 Supabase:', SUPABASE_URL);
-        console.log('✅ Using window.supabase.createClient');
-        console.log('📊 Table: voters');
-        console.log('📈 Total voters will appear here!');
+        console.log('📊 Ready to load voters!');
     </script>
 
 </body>

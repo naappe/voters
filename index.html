@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CampaignHQ - Voter Management</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    <!-- ✅ FIXED: Correct Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js">
     </script>
     <style>
         * {
@@ -563,14 +564,20 @@
         const SUPABASE_URL = 'https://sbomlqemmtcfahtgllzx.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_tU-qC7J1igIq0R_UM1_COA_F-uVpA9Y';
 
-        // ✅ FIXED: Use window.supabase for v2
+        // ✅ FIXED: Check if Supabase loaded
+        if (!window.supabase) {
+            throw new Error("🚨 Supabase SDK failed to load. Check your internet connection.");
+        }
+
+        // ✅ FIXED: Initialize Supabase
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        console.log('🔗 Supabase URL:', SUPABASE_URL);
-        console.log('🔑 Supabase Key:', SUPABASE_KEY.substring(0, 20) + '...');
+        console.log('✅ Supabase loaded successfully!');
+        console.log('🔗 URL:', SUPABASE_URL);
+        console.log('🔑 Key:', SUPABASE_KEY.substring(0, 20) + '...');
 
         // ============================================
-        // AUTH
+        // AUTH - Login ONLY (no auto-signup)
         // ============================================
         const EMAIL = 'admin@campaign.com';
         const PASSWORD = 'Campaign123!';
@@ -582,6 +589,7 @@
 
         async function autoLogin() {
             try {
+                // ✅ FIXED: Only login, no signup
                 const { data, error } = await supabase.auth.signInWithPassword({
                     email: EMAIL,
                     password: PASSWORD
@@ -594,18 +602,7 @@
             } catch (error) {
                 console.error('Login error:', error);
                 document.getElementById('userInfo').textContent = '❌ Login failed';
-                try {
-                    const { data } = await supabase.auth.signUp({
-                        email: EMAIL,
-                        password: PASSWORD
-                    });
-                    if (data.user) {
-                        showToast('✅ User created! Retrying...', 'success');
-                        setTimeout(autoLogin, 2000);
-                    }
-                } catch (e) {
-                    showToast('❌ Create user in Supabase Auth', 'error');
-                }
+                showToast('❌ Login failed: ' + error.message + '. Create user in Supabase Auth.', 'error');
             }
         }
 
@@ -897,8 +894,8 @@
 
         console.log('🗳️ CampaignHQ Loaded!');
         console.log('🔗 Supabase:', SUPABASE_URL);
-        console.log('🔑 Using window.supabase.createClient');
         console.log('📊 Table: voters');
+        console.log('✅ Using correct CDN: supabase.min.js');
     </script>
 
 </body>

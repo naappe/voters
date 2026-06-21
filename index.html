@@ -1,11 +1,412 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=/voters/app.html">
-    <title>Voter Campaign</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voter Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #1a1a2e;
+        }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .card .number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2563eb;
+        }
+        .card .label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+        .filters {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .filters input,
+        .filters select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            flex: 1;
+            min-width: 120px;
+        }
+        .filters button {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #333;
+        }
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .status {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .status-Not-Contacted {
+            background: #e5e7eb;
+            color: #4b5563;
+        }
+        .status-Reached {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .status-Supporter {
+            background: #ede9fe;
+            color: #6d28d9;
+        }
+        .status-Undecided {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .status-Opposition {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .pagination button {
+            padding: 6px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+            cursor: pointer;
+        }
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            display: none;
+            z-index: 999;
+        }
+        .toast.success {
+            background: #22c55e;
+        }
+        .toast.error {
+            background: #ef4444;
+        }
+        @media (max-width: 600px) {
+            .cards {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .filters {
+                flex-direction: column;
+            }
+            .filters input,
+            .filters select {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-    <p>Redirecting to app...</p>
+    <div class="container">
+        <h1>🗳️ Voter Dashboard</h1>
+
+        <!-- KPI Cards -->
+        <div class="cards" id="kpiCards">
+            <div class="card"><div class="number" id="total">0</div><div class="label">Total</div></div>
+            <div class="card"><div class="number" id="reached">0</div><div class="label">Reached</div></div>
+            <div class="card"><div class="number" id="supporters">0</div><div class="label">Supporters</div></div>
+            <div class="card"><div class="number" id="undecided">0</div><div class="label">Undecided</div></div>
+            <div class="card"><div class="number" id="notContacted">0</div><div class="label">Not Contacted</div></div>
+            <div class="card"><div class="number" id="opposition">0</div><div class="label">Opposition</div></div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+            <input type="text" id="searchName" placeholder="Search by name..." oninput="loadData()">
+            <select id="filterStatus" onchange="loadData()">
+                <option value="">All Status</option>
+                <option value="Not Contacted">Not Contacted</option>
+                <option value="Reached">Reached</option>
+                <option value="Supporter">Supporter</option>
+                <option value="Undecided">Undecided</option>
+                <option value="Opposition">Opposition</option>
+            </select>
+            <button class="btn-primary" onclick="loadData()">Apply</button>
+            <button class="btn-secondary" onclick="clearFilters()">Clear</button>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>National ID</th>
+                        <th>District</th>
+                        <th>Status</th>
+                        <th>Party</th>
+                        <th>Sex</th>
+                        <th>Age</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr><td colspan="7" class="loading">Loading voters...</td></tr>
+                </tbody>
+            </table>
+            <div class="pagination">
+                <span id="pageInfo">Showing 0-0 of 0</span>
+                <div>
+                    <button id="prevBtn" onclick="prevPage()">← Prev</button>
+                    <button id="nextBtn" onclick="nextPage()">Next →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // ============================================
+        // SUPABASE CONFIG - ⚠️ UPDATE THIS!
+        // ============================================
+        const SUPABASE_URL = 'https://sbomlqemmtcfahgtllzx.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_tU-qC7J1igIq0R_UM1_COA_F-uVpA9Y';
+
+        const supabase = supabaseClient.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ============================================
+        // AUTO-LOGIN
+        // ============================================
+        const EMAIL = 'admin@campaign.com';
+        const PASSWORD = 'Campaign123!';
+
+        let allVoters = [];
+        let filteredVoters = [];
+        let currentPage = 0;
+        const PAGE_SIZE = 15;
+
+        // ============================================
+        // LOGIN
+        // ============================================
+        async function autoLogin() {
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: EMAIL,
+                    password: PASSWORD
+                });
+                if (error) throw error;
+                localStorage.setItem('user', JSON.stringify(data.user));
+                loadData();
+            } catch (error) {
+                console.error('Login error:', error);
+                // Try to create user
+                try {
+                    await supabase.auth.signUp({ email: EMAIL, password: PASSWORD });
+                    showToast('User created! Logging in...', 'success');
+                    setTimeout(autoLogin, 2000);
+                } catch (e) {
+                    showToast('Please create user in Supabase Auth', 'error');
+                }
+            }
+        }
+
+        // ============================================
+        // LOAD DATA
+        // ============================================
+        async function loadData() {
+            try {
+                const name = document.getElementById('searchName').value.toLowerCase().trim();
+                const status = document.getElementById('filterStatus').value;
+
+                let query = supabase.from('voters').select('*');
+                if (name) query = query.ilike('name', `%${name}%`);
+                if (status) query = query.eq('status', status);
+
+                const { data, error } = await query.order('created_at', { ascending: false });
+                if (error) throw error;
+
+                allVoters = data || [];
+                filteredVoters = [...allVoters];
+                updateDashboard();
+                renderTable();
+                showToast('✅ Loaded ' + allVoters.length + ' voters', 'success');
+            } catch (error) {
+                showToast('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // UPDATE DASHBOARD
+        // ============================================
+        function updateDashboard() {
+            const total = allVoters.length;
+            const reached = allVoters.filter(v => v.status && v.status !== 'Not Contacted').length;
+            const supporters = allVoters.filter(v => v.status === 'Supporter').length;
+            const undecided = allVoters.filter(v => v.status === 'Undecided').length;
+            const notContacted = allVoters.filter(v => !v.status || v.status === 'Not Contacted').length;
+            const opposition = allVoters.filter(v => v.status === 'Opposition').length;
+
+            document.getElementById('total').textContent = total;
+            document.getElementById('reached').textContent = reached;
+            document.getElementById('supporters').textContent = supporters;
+            document.getElementById('undecided').textContent = undecided;
+            document.getElementById('notContacted').textContent = notContacted;
+            document.getElementById('opposition').textContent = opposition;
+        }
+
+        // ============================================
+        // RENDER TABLE
+        // ============================================
+        function renderTable() {
+            const start = currentPage * PAGE_SIZE;
+            const end = Math.min(start + PAGE_SIZE, filteredVoters.length);
+            const pageData = filteredVoters.slice(start, end);
+            const tbody = document.getElementById('tableBody');
+
+            if (filteredVoters.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="loading">No voters found</td></tr>';
+                document.getElementById('pageInfo').textContent = 'Showing 0-0 of 0';
+                return;
+            }
+
+            tbody.innerHTML = pageData.map(v => `
+                        <tr>
+                            <td><strong>${v.name || 'Unknown'}</strong></td>
+                            <td>${v.national_id || '-'}</td>
+                            <td>${v.district || '-'}</td>
+                            <td><span class="status status-${(v.status || 'Not-Contacted').replace(/ /g, '-')}">${v.status || 'Not Contacted'}</span></td>
+                            <td>${v.party || '-'}</td>
+                            <td>${v.sex || '-'}</td>
+                            <td>${v.age || '-'}</td>
+                        </tr>
+                    `).join('');
+
+            document.getElementById('pageInfo').textContent = `Showing ${start + 1}-${end} of ${filteredVoters.length}`;
+            document.getElementById('prevBtn').disabled = currentPage === 0;
+            document.getElementById('nextBtn').disabled = currentPage >= Math.ceil(filteredVoters.length / PAGE_SIZE) - 1;
+        }
+
+        // ============================================
+        // FILTERS
+        // ============================================
+        function clearFilters() {
+            document.getElementById('searchName').value = '';
+            document.getElementById('filterStatus').value = '';
+            loadData();
+        }
+
+        function prevPage() {
+            if (currentPage > 0) { currentPage--;
+                renderTable(); }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(filteredVoters.length / PAGE_SIZE);
+            if (currentPage < totalPages - 1) { currentPage++;
+                renderTable(); }
+        }
+
+        // ============================================
+        // TOAST
+        // ============================================
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.style.display = 'block';
+            clearTimeout(toast.timeout);
+            toast.timeout = setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        // ============================================
+        // START
+        // ============================================
+        document.addEventListener('DOMContentLoaded', autoLogin);
+    </script>
+
 </body>
 </html>

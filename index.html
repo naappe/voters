@@ -26,6 +26,30 @@
             margin-bottom: 20px;
             color: #1a1a2e;
         }
+        .header-actions {
+            text-align: right;
+            margin-bottom: 15px;
+        }
+        .header-actions button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        .btn-success {
+            background: #22c55e;
+            color: white;
+        }
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
         .cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -73,10 +97,6 @@
             border-radius: 5px;
             cursor: pointer;
             font-weight: bold;
-        }
-        .btn-primary {
-            background: #2563eb;
-            color: white;
         }
         .btn-secondary {
             background: #e5e7eb;
@@ -135,6 +155,21 @@
             background: #fee2e2;
             color: #991b1b;
         }
+        .actions button {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 2px;
+        }
+        .btn-edit {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+        .btn-delete {
+            background: #fee2e2;
+            color: #dc2626;
+        }
         .pagination {
             display: flex;
             justify-content: space-between;
@@ -176,6 +211,61 @@
         .toast.error {
             background: #ef4444;
         }
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content h2 {
+            margin-bottom: 20px;
+        }
+        .modal-content input,
+        .modal-content select,
+        .modal-content textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .modal-actions button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .close {
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
         @media (max-width: 600px) {
             .cards {
                 grid-template-columns: repeat(3, 1fr);
@@ -194,6 +284,14 @@
     <div class="container">
         <h1>🗳️ Voter Dashboard</h1>
 
+        <!-- Header Actions -->
+        <div class="header-actions">
+            <span id="userInfo" style="margin-right:15px;color:#666;"></span>
+            <button class="btn-success" onclick="exportCSV()">📤 Export</button>
+            <button class="btn-primary" onclick="openModal()">➕ Add</button>
+            <button class="btn-primary" onclick="window.location.href='mobile.html'">📱 Mobile</button>
+        </div>
+
         <!-- KPI Cards -->
         <div class="cards" id="kpiCards">
             <div class="card"><div class="number" id="total">0</div><div class="label">Total</div></div>
@@ -206,8 +304,8 @@
 
         <!-- Filters -->
         <div class="filters">
-            <input type="text" id="searchName" placeholder="Search by name..." oninput="loadData()">
-            <select id="filterStatus" onchange="loadData()">
+            <input type="text" id="searchName" placeholder="🔍 Search by name..." oninput="applyFilters()">
+            <select id="filterStatus" onchange="applyFilters()">
                 <option value="">All Status</option>
                 <option value="Not Contacted">Not Contacted</option>
                 <option value="Reached">Reached</option>
@@ -215,7 +313,7 @@
                 <option value="Undecided">Undecided</option>
                 <option value="Opposition">Opposition</option>
             </select>
-            <button class="btn-primary" onclick="loadData()">Apply</button>
+            <button class="btn-primary" onclick="applyFilters()">Apply</button>
             <button class="btn-secondary" onclick="clearFilters()">Clear</button>
         </div>
 
@@ -231,10 +329,11 @@
                         <th>Party</th>
                         <th>Sex</th>
                         <th>Age</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    <tr><td colspan="7" class="loading">Loading voters...</td></tr>
+                    <tr><td colspan="8" class="loading">Loading voters...</td></tr>
                 </tbody>
             </table>
             <div class="pagination">
@@ -247,11 +346,42 @@
         </div>
     </div>
 
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Add Voter</h2>
+            <form id="voterForm" onsubmit="handleSubmit(event)">
+                <input type="hidden" id="editId">
+                <input type="text" id="formName" placeholder="Full Name" required>
+                <input type="text" id="formNationalId" placeholder="National ID" required>
+                <input type="text" id="formDistrict" placeholder="District">
+                <input type="text" id="formHouse" placeholder="House">
+                <input type="text" id="formPhone" placeholder="Phone">
+                <select id="formStatus">
+                    <option value="Not Contacted">Not Contacted</option>
+                    <option value="Reached">Reached</option>
+                    <option value="Supporter">Supporter</option>
+                    <option value="Undecided">Undecided</option>
+                    <option value="Opposition">Opposition</option>
+                </select>
+                <input type="text" id="formParty" placeholder="Party">
+                <input type="text" id="formSex" placeholder="Sex">
+                <input type="number" id="formAge" placeholder="Age">
+                <textarea id="formNotes" rows="3" placeholder="Notes"></textarea>
+                <div class="modal-actions">
+                    <button type="button" style="background:#e5e7eb;" onclick="closeModal()">Cancel</button>
+                    <button type="submit" style="background:#22c55e;color:white;">✅ Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="toast" class="toast"></div>
 
     <script>
         // ============================================
-        // SUPABASE CONFIG - ⚠️ UPDATE THIS!
+        // SUPABASE CONFIG - CORRECT URL!
         // ============================================
         const SUPABASE_URL = 'https://sbomlqemmtcfahgtllzx.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_tU-qC7J1igIq0R_UM1_COA_F-uVpA9Y';
@@ -280,42 +410,51 @@
                 });
                 if (error) throw error;
                 localStorage.setItem('user', JSON.stringify(data.user));
-                loadData();
+                document.getElementById('userInfo').textContent = '✅ Logged in: ' + data.user.email;
+                await loadVoters();
+                showToast('✅ Logged in successfully!', 'success');
             } catch (error) {
                 console.error('Login error:', error);
+                document.getElementById('userInfo').textContent = '❌ Login failed';
                 // Try to create user
                 try {
-                    await supabase.auth.signUp({ email: EMAIL, password: PASSWORD });
-                    showToast('User created! Logging in...', 'success');
-                    setTimeout(autoLogin, 2000);
+                    const { data } = await supabase.auth.signUp({
+                        email: EMAIL,
+                        password: PASSWORD
+                    });
+                    if (data.user) {
+                        showToast('✅ User created! Retrying login...', 'success');
+                        setTimeout(autoLogin, 2000);
+                    }
                 } catch (e) {
-                    showToast('Please create user in Supabase Auth', 'error');
+                    showToast('❌ Please create user in Supabase Auth', 'error');
                 }
             }
         }
 
         // ============================================
-        // LOAD DATA
+        // LOAD VOTERS
         // ============================================
-        async function loadData() {
+        async function loadVoters() {
             try {
-                const name = document.getElementById('searchName').value.toLowerCase().trim();
-                const status = document.getElementById('filterStatus').value;
+                const { data, error } = await supabase
+                    .from('voters')
+                    .select('*')
+                    .order('created_at', { ascending: false });
 
-                let query = supabase.from('voters').select('*');
-                if (name) query = query.ilike('name', `%${name}%`);
-                if (status) query = query.eq('status', status);
-
-                const { data, error } = await query.order('created_at', { ascending: false });
                 if (error) throw error;
 
                 allVoters = data || [];
                 filteredVoters = [...allVoters];
                 updateDashboard();
                 renderTable();
+                console.log('✅ Loaded', allVoters.length, 'voters');
                 showToast('✅ Loaded ' + allVoters.length + ' voters', 'success');
             } catch (error) {
-                showToast('❌ Error: ' + error.message, 'error');
+                console.error('Error loading voters:', error);
+                showToast('❌ Error loading voters: ' + error.message, 'error');
+                document.getElementById('tableBody').innerHTML =
+                    '<tr><td colspan="8" class="loading">❌ Error: ' + error.message + '</td></tr>';
             }
         }
 
@@ -348,8 +487,10 @@
             const tbody = document.getElementById('tableBody');
 
             if (filteredVoters.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="loading">No voters found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="loading">No voters found</td></tr>';
                 document.getElementById('pageInfo').textContent = 'Showing 0-0 of 0';
+                document.getElementById('prevBtn').disabled = true;
+                document.getElementById('nextBtn').disabled = true;
                 return;
             }
 
@@ -362,6 +503,10 @@
                             <td>${v.party || '-'}</td>
                             <td>${v.sex || '-'}</td>
                             <td>${v.age || '-'}</td>
+                            <td class="actions">
+                                <button class="btn-edit" onclick="editVoter('${v.id}')">✏️</button>
+                                <button class="btn-delete" onclick="deleteVoter('${v.id}')">🗑️</button>
+                            </td>
                         </tr>
                     `).join('');
 
@@ -373,10 +518,27 @@
         // ============================================
         // FILTERS
         // ============================================
+        function applyFilters() {
+            const name = document.getElementById('searchName').value.toLowerCase().trim();
+            const status = document.getElementById('filterStatus').value;
+
+            filteredVoters = allVoters.filter(v => {
+                let match = true;
+                if (name) match = match && (v.name || '').toLowerCase().includes(name);
+                if (status) match = match && (v.status || '') === status;
+                return match;
+            });
+
+            currentPage = 0;
+            renderTable();
+        }
+
         function clearFilters() {
             document.getElementById('searchName').value = '';
             document.getElementById('filterStatus').value = '';
-            loadData();
+            filteredVoters = [...allVoters];
+            currentPage = 0;
+            renderTable();
         }
 
         function prevPage() {
@@ -388,6 +550,122 @@
             const totalPages = Math.ceil(filteredVoters.length / PAGE_SIZE);
             if (currentPage < totalPages - 1) { currentPage++;
                 renderTable(); }
+        }
+
+        // ============================================
+        // MODAL (Add/Edit)
+        // ============================================
+        function openModal(voter = null) {
+            const modal = document.getElementById('modal');
+            modal.classList.add('active');
+
+            if (voter) {
+                document.getElementById('modalTitle').textContent = 'Edit Voter';
+                document.getElementById('editId').value = voter.id;
+                document.getElementById('formName').value = voter.name || '';
+                document.getElementById('formNationalId').value = voter.national_id || '';
+                document.getElementById('formDistrict').value = voter.district || '';
+                document.getElementById('formHouse').value = voter.house || '';
+                document.getElementById('formPhone').value = voter.phone || '';
+                document.getElementById('formStatus').value = voter.status || 'Not Contacted';
+                document.getElementById('formParty').value = voter.party || '';
+                document.getElementById('formSex').value = voter.sex || '';
+                document.getElementById('formAge').value = voter.age || '';
+                document.getElementById('formNotes').value = voter.notes || '';
+            } else {
+                document.getElementById('modalTitle').textContent = 'Add Voter';
+                document.getElementById('editId').value = '';
+                document.getElementById('voterForm').reset();
+                document.getElementById('formStatus').value = 'Not Contacted';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        // ============================================
+        // HANDLE SUBMIT
+        // ============================================
+        async function handleSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('editId').value;
+            const data = {
+                name: document.getElementById('formName').value.trim(),
+                national_id: document.getElementById('formNationalId').value.trim(),
+                district: document.getElementById('formDistrict').value.trim(),
+                house: document.getElementById('formHouse').value.trim(),
+                phone: document.getElementById('formPhone').value.trim(),
+                status: document.getElementById('formStatus').value,
+                party: document.getElementById('formParty').value.trim(),
+                sex: document.getElementById('formSex').value.trim(),
+                age: parseInt(document.getElementById('formAge').value) || null,
+                notes: document.getElementById('formNotes').value.trim(),
+                updated_at: new Date().toISOString()
+            };
+
+            try {
+                if (id) {
+                    await supabase.from('voters').update(data).eq('id', id);
+                    showToast('✅ Voter updated!', 'success');
+                } else {
+                    data.created_at = new Date().toISOString();
+                    await supabase.from('voters').insert([data]);
+                    showToast('✅ Voter added!', 'success');
+                }
+                closeModal();
+                loadVoters();
+            } catch (error) {
+                showToast('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // DELETE VOTER
+        // ============================================
+        async function deleteVoter(id) {
+            if (!confirm('Delete this voter?')) return;
+            try {
+                await supabase.from('voters').delete().eq('id', id);
+                showToast('🗑️ Voter deleted', 'success');
+                loadVoters();
+            } catch (error) {
+                showToast('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // EDIT VOTER
+        // ============================================
+        function editVoter(id) {
+            const voter = allVoters.find(v => v.id === id);
+            if (voter) openModal(voter);
+        }
+
+        // ============================================
+        // EXPORT CSV
+        // ============================================
+        function exportCSV() {
+            if (filteredVoters.length === 0) {
+                showToast('No data to export', 'error');
+                return;
+            }
+
+            const headers = ['Name', 'National ID', 'District', 'House', 'Status', 'Party', 'Sex', 'Age', 'Phone', 'Notes'];
+            const rows = filteredVoters.map(v => [
+                v.name || '', v.national_id || '', v.district || '', v.house || '',
+                v.status || 'Not Contacted', v.party || '', v.sex || '', v.age || '', v.phone || '', v.notes || ''
+            ]);
+
+            const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `voters_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('📤 Export successful!', 'success');
         }
 
         // ============================================
@@ -406,6 +684,9 @@
         // START
         // ============================================
         document.addEventListener('DOMContentLoaded', autoLogin);
+
+        console.log('🗳️ Voter App Loaded!');
+        console.log('🔗 Supabase URL:', SUPABASE_URL);
     </script>
 
 </body>

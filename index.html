@@ -491,7 +491,7 @@
 
     <script>
         // ============================================
-        // SUPABASE CONFIG - EXACTLY AS YOUR test.html
+        // ✅ CORRECT URL - THIS IS YOUR REAL ONE!
         // ============================================
         const SUPABASE_URL = 'https://sbomlqemmtcfahtgllzx.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_tU-qC7J1igIq0R_UM1_COA_F-uVpA9Y';
@@ -508,7 +508,7 @@
         console.log('🔗 URL:', SUPABASE_URL);
 
         // ============================================
-        // AUTH - SAME AS test.html
+        // AUTH
         // ============================================
         const EMAIL = 'admin@campaign.com';
         const PASSWORD = 'Campaign123!';
@@ -538,9 +538,6 @@
             }
         }
 
-        // ============================================
-        // LOAD VOTERS - SAME AS test.html
-        // ============================================
         async function loadVoters() {
             try {
                 const { data, error } = await supabase
@@ -563,9 +560,6 @@
             }
         }
 
-        // ============================================
-        // DASHBOARD
-        // ============================================
         function updateDashboard() {
             const total = allVoters.length;
             const supporters = allVoters.filter(v => v.status === 'Supporter').length;
@@ -586,9 +580,6 @@
             document.getElementById('absent').textContent = absent;
         }
 
-        // ============================================
-        // TABLE
-        // ============================================
         function renderTable() {
             const start = currentPage * PAGE_SIZE;
             const end = Math.min(start + PAGE_SIZE, filteredVoters.length);
@@ -630,9 +621,6 @@
             document.getElementById('nextBtn').disabled = currentPage >= Math.ceil(filteredVoters.length / PAGE_SIZE) - 1;
         }
 
-        // ============================================
-        // SET STATUS
-        // ============================================
         async function setStatus(id, status) {
             try {
                 const { error } = await supabase
@@ -647,9 +635,6 @@
             }
         }
 
-        // ============================================
-        // FILTERS
-        // ============================================
         function applyFilters() {
             const name = document.getElementById('searchName').value.toLowerCase().trim();
             const district = document.getElementById('searchDistrict').value.toLowerCase().trim();
@@ -676,9 +661,6 @@
             renderTable();
         }
 
-        // ============================================
-        // PAGINATION
-        // ============================================
         function prevPage() {
             if (currentPage > 0) { currentPage--;
                 renderTable(); }
@@ -690,9 +672,6 @@
                 renderTable(); }
         }
 
-        // ============================================
-        // MODAL
-        // ============================================
         function openModal(voter = null) {
             const modal = document.getElementById('modal');
             modal.classList.add('active');
@@ -722,9 +701,6 @@
             document.getElementById('modal').classList.remove('active');
         }
 
-        // ============================================
-        // HANDLE SUBMIT
-        // ============================================
         async function handleSubmit(e) {
             e.preventDefault();
             const id = document.getElementById('editId').value;
@@ -758,9 +734,6 @@
             }
         }
 
-        // ============================================
-        // DELETE
-        // ============================================
         async function deleteVoter(id) {
             if (!confirm('Delete this voter?')) return;
             try {
@@ -772,17 +745,11 @@
             }
         }
 
-        // ============================================
-        // EDIT
-        // ============================================
         function editVoter(id) {
             const voter = allVoters.find(v => v.id === id);
             if (voter) openModal(voter);
         }
 
-        // ============================================
-        // EXPORT CSV
-        // ============================================
         function exportCSV() {
             if (filteredVoters.length === 0) {
                 showToast('No data to export', 'error');
@@ -806,9 +773,6 @@
             showToast('📤 Export successful!', 'success');
         }
 
-        // ============================================
-        // TOAST
-        // ============================================
         function showToast(message, type) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
@@ -818,13 +782,11 @@
             toast.timeout = setTimeout(() => { toast.style.display = 'none'; }, 3000);
         }
 
-        // ============================================
-        // START
-        // ============================================
         document.addEventListener('DOMContentLoaded', autoLogin);
 
         console.log('🗳️ CampaignHQ Loaded!');
-        console.log('📊 Ready to load voters!');
+        console.log('🔗 URL:', SUPABASE_URL);
+        console.log('✅ Using CORRECT Supabase URL!');
     </script>
 
 </body>

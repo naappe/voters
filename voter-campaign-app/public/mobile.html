@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mobile Mode - Campaign App</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 1rem;
+            max-width: 500px;
+            margin: 0 auto;
+            min-height: 100vh;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0.5rem 0;
+        }
+        .header h1 { font-size: 1.25rem; }
+        .back-link {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+        .progress-text { font-size: 0.875rem; color: #6b7280; }
+        .progress-bar {
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        .progress-bar .fill {
+            height: 100%;
+            background: #3b82f6;
+            transition: width 0.3s ease;
+        }
+        .location {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .voter-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .voter-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 1rem;
+            display: block;
+            border: 4px solid #e5e7eb;
+        }
+        .voter-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+        }
+        .voter-detail {
+            text-align: center;
+            color: #6b7280;
+            margin: 0.25rem 0;
+        }
+        .voter-detail i { margin-right: 0.25rem; }
+        .status-display {
+            text-align: center;
+            margin: 1rem 0;
+        }
+        .status-badge {
+            padding: 0.35rem 1.25rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            display: inline-block;
+        }
+        .status-Not-Contacted { background: #e5e7eb; color: #4b5563; }
+        .status-Reached { background: #dbeafe; color: #1e40af; }
+        .status-Supporter { background: #ede9fe; color: #6d28d9; }
+        .status-Undecided { background: #fef3c7; color: #92400e; }
+        .status-Opposition { background: #fee2e2; color: #991b1b; }
+        .status-Need-Follow-up { background: #ffedd5; color: #9a3412; }
+        .status-Absent { background: #e0e7ff; color: #3730a3; }
+        
+        .quick-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+        .quick-actions button {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .btn-call { background: #22c55e; color: white; }
+        .btn-call:hover { background: #16a34a; }
+        .btn-next { background: #3b82f6; color: white; }
+        .btn-next:hover { background: #2563eb; }
+        .btn-prev { background: #e5e7eb; color: #4b5563; }
+        .btn-prev:hover { background: #d1d5db; }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        .status-grid button {
+            padding: 0.6rem 0.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .status-grid button:active { transform: scale(0.95); }
+        .s-reached { background: #dbeafe; color: #1e40af; }
+        .s-supporter { background: #ede9fe; color: #6d28d9; }
+        .s-undecided { background: #fef3c7; color: #92400e; }
+        .s-opposition { background: #fee2e2; color: #991b1b; }
+        .s-followup { background: #ffedd5; color: #9a3412; }
+        .s-absent { background: #e0e7ff; color: #3730a3; }
+        
+        .notes-section { margin: 1rem 0; }
+        .notes-section textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            resize: vertical;
+            font-family: inherit;
+            font-size: 0.875rem;
+        }
+        .notes-section textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        .nav-buttons button {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 500;
+            display: none;
+            z-index: 1000;
+            max-width: 90%;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .toast.success { background: #22c55e; }
+        .toast.error { background: #ef4444; }
+        .toast.info { background: #3b82f6; }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            display: none;
+        }
+        .empty-state .icon { font-size: 4rem; margin-bottom: 1rem; }
+        .empty-state h3 { margin-bottom: 0.5rem; }
+        .empty-state p { color: #6b7280; }
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        .btn-primary:hover { background: #2563eb; }
+        .loader {
+            text-align: center;
+            padding: 2rem;
+        }
+        .spinner {
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        @media (max-width: 480px) {
+            body { padding: 0.5rem; }
+            .voter-card { padding: 1rem; }
+            .status-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <a href="/dashboard.html" class="back-link">← Back to Dashboard</a>
+    
+    <div class="header">
+        <h1>📱 Door-to-Door</h1>
+        <span class="progress-text" id="progress">0 of 0</span>
+    </div>
+    
+    <div class="progress-bar">
+        <div class="fill" id="progressBar" style="width:0%"></div>
+    </div>
+    
+    <div class="location" id="location">📍 Getting location...</div>
+    
+    <!-- Loader -->
+    <div id="loader" class="loader">
+        <div class="spinner"></div>
+        <p>Loading voters...</p>
+    </div>
+    
+    <!-- Empty State -->
+    <div id="emptyState" class="empty-state">
+        <div class="icon">✅</div>
+        <h3>All Done!</h3>
+        <p>You've completed all visits.</p>
+        <button class="btn-primary" onclick="location.reload()">🔄 Refresh</button>
+    </div>
+    
+    <!-- Voter Card -->
+    <div id="voterCard" class="voter-card" style="display:none;">
+        <img id="voterPhoto" class="voter-photo" src="" alt="Voter">
+        <h2 class="voter-name" id="voterName">Loading...</h2>
+        <p class="voter-detail" id="voterPhone">📞 No phone</p>
+        <p class="voter-detail" id="voterAddress">🏠 No address</p>
+        
+        <div class="status-display">
+            <span class="status-badge" id="voterStatus">Not Contacted</span>
+        </div>
+        
+        <div class="quick-actions">
+            <button class="btn-call" id="callBtn">📞 Call</button>
+            <button class="btn-next" id="nextQuickBtn">⏭️ Next</button>
+        </div>
+        
+        <div class="notes-section">
+            <textarea id="notesInput" placeholder="Add notes about this visit..." rows="2"></textarea>
+        </div>
+        
+        <div class="status-grid">
+            <button class="s-reached" data-status="Reached">✅ Reached</button>
+            <button class="s-supporter" data-status="Supporter">👍 Supporter</button>
+            <button class="s-undecided" data-status="Undecided">🤔 Undecided</button>
+            <button class="s-opposition" data-status="Opposition">👎 Opposition</button>
+            <button class="s-followup" data-status="Need Follow-up">⏰ Follow-up</button>
+            <button class="s-absent" data-status="Absent">🚫 Absent</button>
+        </div>
+        
+        <div class="nav-buttons">
+            <button class="btn-prev" id="prevBtn">← Previous</button>
+            <button class="btn-next" id="nextBtn">Next →</button>
+        </div>
+    </div>
+    
+    <div id="toast" class="toast"></div>
+
+    <script type="module">
+        import { getVoters, updateVoter, addContactHistory } from '../assets/js/voters.js';
+        import { requireAuth } from '../assets/js/auth.js';
+        
+        // Auth check
+        if (!requireAuth()) return;
+        
+        let voters = [];
+        let currentIndex = 0;
+        let toastTimeout;
+        
+        // DOM Elements
+        const loader = document.getElementById('loader');
+        const voterCard = document.getElementById('voterCard');
+        const emptyState = document.getElementById('emptyState');
+        const toast = document.getElementById('toast');
+        
+        async function loadVoters() {
+            try {
+                loader.style.display = 'block';
+                const data = await getVoters();
+                voters = data || [];
+                loader.style.display = 'none';
+                
+                if (voters.length === 0) {
+                    emptyState.style.display = 'block';
+                    voterCard.style.display = 'none';
+                } else {
+                    voterCard.style.display = 'block';
+                    showVoter();
+                }
+            } catch (error) {
+                loader.style.display = 'none';
+                showToast('Error loading voters: ' + error.message, 'error');
+            }
+        }
+        
+        function showVoter() {
+            if (voters.length === 0 || currentIndex >= voters.length) {
+                emptyState.style.display = 'block';
+                voterCard.style.display = 'none';
+                return;
+            }
+            
+            const v = voters[currentIndex];
+            
+            // Update photo
+            const photo = document.getElementById('voterPhoto');
+            photo.src = v.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(v.name || 'V')}&background=3b82f6&color=fff&size=120`;
+            photo.alt = v.name || 'Voter';
+            
+            document.getElementById('voterName').textContent = v.name || 'Unknown';
+            document.getElementById('voterPhone').textContent = v.phone ? `📞 ${v.phone}` : '📞 No phone';
+            document.getElementById('voterAddress').textContent = v.district ? `🏠 ${v.district}${v.house ? `, ${v.house}` : ''}` : '🏠 No address';
+            
+            const status = v.status || 'Not Contacted';
+            const statusEl = document.getElementById('voterStatus');
+            statusEl.textContent = status;
+            statusEl.className = `status-badge status-${status.replace(/ /g, '-')}`;
+            
+            // Update progress
+            document.getElementById('progress').textContent = `${currentIndex + 1} of ${voters.length}`;
+            document.getElementById('progressBar').style.width = `${((currentIndex + 1) / voters.length) * 100}%`;
+            
+            // Update call button
+            const callBtn = document.getElementById('callBtn');
+            if (v.phone) {
+                callBtn.onclick = () => window.location.href = `tel:${v.phone}`;
+                callBtn.style.display = 'block';
+            } else {
+                callBtn.style.display = 'none';
+            }
+            
+            // Clear notes
+            document.getElementById('notesInput').value = '';
+            
+            // Update navigation buttons
+            document.getElementById('prevBtn').disabled = currentIndex === 0;
+        }
+        
+        async function setStatus(status) {
+            if (voters.length === 0) return;
+            
+            const v = voters[currentIndex];
+            const notes = document.getElementById('notesInput').value;
+            
+            try {
+                // Update status
+                await updateVoter(v.id, { status });
+                
+                // Add contact history
+                await addContactHistory(v.id, status, notes);
+                
+                // Update local data
+                v.status = status;
+                showVoter();
+                
+                showToast(`✅ Status updated to: ${status}`, 'success');
+                
+                // Auto advance after delay
+                setTimeout(() => {
+                    if (currentIndex < voters.length - 1) {
+                        nextVoter();
+                    }
+                }, 1000);
+            } catch (error) {
+                showToast('Error updating status: ' + error.message, 'error');
+            }
+        }
+        
+        function nextVoter() {
+            if (currentIndex < voters.length - 1) {
+                currentIndex++;
+                showVoter();
+            } else {
+                showToast('🎉 You\'ve completed all visits!', 'info');
+                setTimeout(() => {
+                    emptyState.style.display = 'block';
+                    voterCard.style.display = 'none';
+                }, 1500);
+            }
+        }
+        
+        function prevVoter() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                showVoter();
+            }
+        }
+        
+        function showToast(message, type = 'info') {
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.style.display = 'block';
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Event Listeners
+        document.querySelectorAll('.status-grid button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                setStatus(btn.dataset.status);
+            });
+        });
+        
+        document.getElementById('nextBtn').addEventListener('click', nextVoter);
+        document.getElementById('prevBtn').addEventListener('click', prevVoter);
+        document.getElementById('nextQuickBtn').addEventListener('click', nextVoter);
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                nextVoter();
+            }
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevVoter();
+            }
+            // Number keys 1-6 for statuses
+            const statuses = ['Reached', 'Supporter', 'Undecided', 'Opposition', 'Need Follow-up', 'Absent'];
+            const num = parseInt(e.key);
+            if (num >= 1 && num <= 6) {
+                setStatus(statuses[num - 1]);
+            }
+        });
+        
+        // Geolocation
+        if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    document.getElementById('location').textContent = 
+                        `📍 ${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
+                },
+                () => {
+                    document.getElementById('location').textContent = '📍 Location unavailable';
+                }
+            );
+        }
+        
+        // Load initial data
+        loadVoters();
+    </script>
+</body>
+</html>

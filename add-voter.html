@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Voter</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
     <style>
         * {
             margin: 0;
@@ -212,8 +213,8 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        const supabase = supabaseClient.createClient(
-            'https://sbomlqemmtcfahgtllzx.supabase.co',
+        const supabase = window.supabase.createClient(
+            'https://sbomlqemmtcfahtgllzx.supabase.co',
             'sb_publishable_tU-qC7J1igIq0R_UM1_COA_F-uVpA9Y'
         );
 

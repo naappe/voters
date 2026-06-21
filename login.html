@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Campaign App</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>Login - CampaignHQ</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
     <style>
         * {
             margin: 0;
@@ -81,12 +82,18 @@
             margin-top: 1rem;
             display: none;
         }
+        .success {
+            color: #22c55e;
+            text-align: center;
+            margin-top: 1rem;
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="login-card">
         <div class="logo">🗳️</div>
-        <h1>Campaign App</h1>
+        <h1>CampaignHQ</h1>
         <p class="subtitle">Voter Management System</p>
         <form id="loginForm">
             <div class="form-group">
@@ -99,11 +106,12 @@
             </div>
             <button type="submit" class="btn">Sign In</button>
             <div id="loginError" class="error"></div>
+            <div id="loginSuccess" class="success"></div>
         </form>
     </div>
     <script>
-        const supabase = supabaseClient.createClient(
-            'https://sbomlqemmtcfahgtllzx.supabase.co',
+        const supabase = window.supabase.createClient(
+            'https://sbomlqemmtcfahtgllzx.supabase.co',
             'sb_publishable_tU-qC7J1igIq0R_UM1_COA_F-uVpA9Y'
         );
 
@@ -112,12 +120,20 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const errorEl = document.getElementById('loginError');
+            const successEl = document.getElementById('loginSuccess');
+
+            errorEl.style.display = 'none';
+            successEl.style.display = 'none';
 
             try {
                 const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) throw error;
                 localStorage.setItem('user', JSON.stringify(data.user));
-                window.location.href = '/voters/app.html';
+                successEl.textContent = '✅ Login successful! Redirecting...';
+                successEl.style.display = 'block';
+                setTimeout(() => {
+                    window.location.href = '/voters/app.html';
+                }, 1000);
             } catch (error) {
                 errorEl.textContent = error.message || 'Login failed';
                 errorEl.style.display = 'block';

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -74,6 +73,13 @@
         }
         .btn-blue:hover {
             background: #2563eb;
+        }
+        .btn-red {
+            background: #ef4444;
+            color: white;
+        }
+        .btn-red:hover {
+            background: #dc2626;
         }
         .user-info {
             color: #94a3b8;
@@ -560,7 +566,7 @@
 
     <script>
         // ============================================
-        // SUPABASE CONFIG - CONNECTS TO YOUR DATABASE
+        // SUPABASE CONFIG
         // ============================================
         const SUPABASE_URL = 'https://sbomlqemmtcfahtgllzx.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_tU-qC7J1igIq0R_UM1_COA_F-uVpA9Y';
@@ -572,7 +578,7 @@
         console.log('🔑 Connected!');
 
         // ============================================
-        // AUTH - Login ONLY (no auto-signup for security)
+        // AUTH
         // ============================================
         const EMAIL = 'admin@campaign.com';
         const PASSWORD = 'Campaign123!';
@@ -666,24 +672,24 @@
             }
 
             tbody.innerHTML = pageData.map(v => `
-                <tr>
-                    <td><strong>${v.name || 'Unknown'}</strong></td>
-                    <td>${v.national_id || '-'}</td>
-                    <td>${v.district || '-'}</td>
-                    <td><span class="status status-${(v.status || 'Not-Contacted').replace(/ /g, '-')}">${v.status || 'Not Contacted'}</span></td>
-                    <td>${v.party || '-'}</td>
-                    <td>${v.sex || '-'}</td>
-                    <td>${v.age || '-'}</td>
-                    <td class="actions">
-                        <button class="btn-reached" onclick="setStatus('${v.id}','Reached')">📞</button>
-                        <button class="btn-supporter" onclick="setStatus('${v.id}','Supporter')">👍</button>
-                        <button class="btn-undecided" onclick="setStatus('${v.id}','Undecided')">🤔</button>
-                        <button class="btn-opposition" onclick="setStatus('${v.id}','Opposition')">👎</button>
-                        <button class="btn-edit" onclick="editVoter('${v.id}')">✏️</button>
-                        <button class="btn-delete" onclick="deleteVoter('${v.id}')">🗑️</button>
-                    </td>
-                </tr>
-            `).join('');
+                        <tr>
+                            <td><strong>${v.name || 'Unknown'}</strong></td>
+                            <td>${v.national_id || '-'}</td>
+                            <td>${v.district || '-'}</td>
+                            <td><span class="status status-${(v.status || 'Not-Contacted').replace(/ /g, '-')}">${v.status || 'Not Contacted'}</span></td>
+                            <td>${v.party || '-'}</td>
+                            <td>${v.sex || '-'}</td>
+                            <td>${v.age || '-'}</td>
+                            <td class="actions">
+                                <button class="btn-reached" onclick="setStatus('${v.id}','Reached')">📞</button>
+                                <button class="btn-supporter" onclick="setStatus('${v.id}','Supporter')">👍</button>
+                                <button class="btn-undecided" onclick="setStatus('${v.id}','Undecided')">🤔</button>
+                                <button class="btn-opposition" onclick="setStatus('${v.id}','Opposition')">👎</button>
+                                <button class="btn-edit" onclick="editVoter('${v.id}')">✏️</button>
+                                <button class="btn-delete" onclick="deleteVoter('${v.id}')">🗑️</button>
+                            </td>
+                        </tr>
+                    `).join('');
 
             document.getElementById('pageInfo').textContent = `Showing ${start + 1}-${end} of ${filteredVoters.length}`;
             document.getElementById('prevBtn').disabled = currentPage === 0;
@@ -691,7 +697,7 @@
         }
 
         // ============================================
-        // SET STATUS - ONE CLICK!
+        // SET STATUS
         // ============================================
         async function setStatus(id, status) {
             try {
@@ -836,7 +842,7 @@
         }
 
         // ============================================
-        // EDIT - Opens Modal
+        // EDIT
         // ============================================
         function editVoter(id) {
             const voter = allVoters.find(v => v.id === id);

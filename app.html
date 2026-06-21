@@ -35,9 +35,6 @@
         }
         .header h1 {
             font-size: 24px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
         .header-actions {
             display: flex;
@@ -51,35 +48,22 @@
             cursor: pointer;
             font-weight: 600;
             font-size: 14px;
-            transition: all 0.2s;
         }
         .btn-white {
             background: white;
             color: #1a1a2e;
         }
-        .btn-white:hover {
-            background: #e5e7eb;
-        }
         .btn-green {
             background: #22c55e;
             color: white;
-        }
-        .btn-green:hover {
-            background: #16a34a;
         }
         .btn-blue {
             background: #3b82f6;
             color: white;
         }
-        .btn-blue:hover {
-            background: #2563eb;
-        }
         .btn-red {
             background: #ef4444;
             color: white;
-        }
-        .btn-red:hover {
-            background: #dc2626;
         }
         .user-info {
             color: #94a3b8;
@@ -87,7 +71,7 @@
         }
         .cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 15px;
             margin-bottom: 25px;
         }
@@ -100,15 +84,14 @@
             border-left: 4px solid #3b82f6;
         }
         .card .number {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
         }
         .card .label {
-            font-size: 12px;
+            font-size: 11px;
             color: #6b7280;
             text-transform: uppercase;
             font-weight: 600;
-            letter-spacing: 0.5px;
         }
         .card .number.blue {
             color: #3b82f6;
@@ -116,23 +99,14 @@
         .card .number.green {
             color: #22c55e;
         }
-        .card .number.purple {
-            color: #8b5cf6;
+        .card .number.red {
+            color: #ef4444;
         }
         .card .number.yellow {
             color: #f59e0b;
         }
         .card .number.gray {
             color: #6b7280;
-        }
-        .card .number.red {
-            color: #ef4444;
-        }
-        .card .number.orange {
-            color: #f97316;
-        }
-        .card .number.teal {
-            color: #14b8a6;
         }
         .filters {
             background: white;
@@ -154,12 +128,6 @@
             min-width: 150px;
             font-size: 14px;
         }
-        .filters input:focus,
-        .filters select:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
         .table-container {
             background: white;
             border-radius: 12px;
@@ -174,17 +142,14 @@
         }
         th {
             background: #f8fafc;
-            padding: 14px 16px;
+            padding: 12px 16px;
             text-align: left;
             font-weight: 600;
-            color: #1e293b;
             border-bottom: 2px solid #e2e8f0;
-            white-space: nowrap;
         }
         td {
-            padding: 12px 16px;
+            padding: 10px 16px;
             border-bottom: 1px solid #f1f5f9;
-            vertical-align: middle;
         }
         tr:hover {
             background: #f8fafc;
@@ -216,14 +181,6 @@
             background: #fee2e2;
             color: #991b1b;
         }
-        .status-Need-Follow-up {
-            background: #ffedd5;
-            color: #9a3412;
-        }
-        .status-Absent {
-            background: #e0e7ff;
-            color: #3730a3;
-        }
         .actions {
             display: flex;
             gap: 5px;
@@ -236,10 +193,6 @@
             cursor: pointer;
             font-size: 12px;
             font-weight: 500;
-            transition: all 0.2s;
-        }
-        .actions button:hover {
-            transform: scale(1.05);
         }
         .btn-edit {
             background: #dbeafe;
@@ -281,9 +234,6 @@
             cursor: pointer;
             font-weight: 500;
         }
-        .pagination button:hover {
-            background: #f3f4f6;
-        }
         .pagination button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -304,26 +254,12 @@
             display: none;
             z-index: 999;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            animation: slideIn 0.3s ease;
         }
         .toast.success {
             background: #22c55e;
         }
         .toast.error {
             background: #ef4444;
-        }
-        .toast.info {
-            background: #3b82f6;
-        }
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
         }
         .modal {
             display: none;
@@ -346,21 +282,6 @@
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
-            animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-        .modal-content h2 {
-            margin-bottom: 20px;
-            color: #1a1a2e;
         }
         .modal-content .close {
             float: right;
@@ -368,15 +289,11 @@
             cursor: pointer;
             color: #6b7280;
         }
-        .modal-content .close:hover {
-            color: #1a1a2e;
-        }
         .modal-content label {
             display: block;
             font-weight: 600;
             margin-bottom: 5px;
             font-size: 14px;
-            color: #374151;
         }
         .modal-content input,
         .modal-content select,
@@ -388,13 +305,6 @@
             margin-bottom: 15px;
             font-size: 14px;
             font-family: inherit;
-        }
-        .modal-content input:focus,
-        .modal-content select:focus,
-        .modal-content textarea:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
         .modal-actions {
             display: flex;
@@ -417,7 +327,6 @@
             .header {
                 padding: 15px 20px;
                 flex-direction: column;
-                align-items: stretch;
                 text-align: center;
             }
             .header-actions {
@@ -439,13 +348,6 @@
             .cards {
                 grid-template-columns: 1fr 1fr;
             }
-            .header h1 {
-                font-size: 18px;
-            }
-            .header-actions button {
-                font-size: 12px;
-                padding: 6px 12px;
-            }
         }
     </style>
 </head>
@@ -463,14 +365,12 @@
         </header>
 
         <div class="cards">
-            <div class="card"><div class="number blue" id="total">0</div><div class="label">Total Voters</div></div>
+            <div class="card"><div class="number blue" id="total">0</div><div class="label">Total</div></div>
             <div class="card"><div class="number green" id="supporters">0</div><div class="label">Supporters</div></div>
             <div class="card"><div class="number red" id="opposition">0</div><div class="label">Opposition</div></div>
             <div class="card"><div class="number yellow" id="undecided">0</div><div class="label">Undecided</div></div>
             <div class="card"><div class="number teal" id="reached">0</div><div class="label">Reached</div></div>
             <div class="card"><div class="number gray" id="notContacted">0</div><div class="label">Not Contacted</div></div>
-            <div class="card"><div class="number orange" id="needFollowup">0</div><div class="label">Need Follow-up</div></div>
-            <div class="card"><div class="number purple" id="absent">0</div><div class="label">Absent</div></div>
         </div>
 
         <div class="filters">
@@ -483,8 +383,6 @@
                 <option value="Supporter">Supporter</option>
                 <option value="Undecided">Undecided</option>
                 <option value="Opposition">Opposition</option>
-                <option value="Need Follow-up">Need Follow-up</option>
-                <option value="Absent">Absent</option>
             </select>
             <button class="btn-blue" onclick="applyFilters()">Apply</button>
             <button style="background:#e5e7eb;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;" onclick="clearFilters()">Clear</button>
@@ -541,8 +439,6 @@
                     <option value="Supporter">Supporter</option>
                     <option value="Undecided">Undecided</option>
                     <option value="Opposition">Opposition</option>
-                    <option value="Need Follow-up">Need Follow-up</option>
-                    <option value="Absent">Absent</option>
                 </select>
                 <label>Party</label>
                 <input type="text" id="formParty">
@@ -550,8 +446,6 @@
                 <input type="text" id="formSex">
                 <label>Age</label>
                 <input type="number" id="formAge">
-                <label>Photo URL</label>
-                <input type="url" id="formPhoto">
                 <label>Notes</label>
                 <textarea id="formNotes" rows="3"></textarea>
                 <div class="modal-actions">
@@ -566,19 +460,24 @@
 
     <script>
         // ============================================
-        // SUPABASE CONFIG
+        // SUPABASE CONFIG - SAME AS test.html
         // ============================================
         const SUPABASE_URL = 'https://sbomlqemmtcfahtgllzx.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_tU-qC7J1igIq0R_UM1_COA_F-uVpA9Y';
 
-        // ✅ FIXED: Use window.supabase for v2
+        // ⚠️ CHECK: Make sure supabase is loaded
+        if (typeof window.supabase === 'undefined') {
+            document.getElementById('tableBody').innerHTML =
+                '<tr><td colspan="8" class="loading">❌ Supabase library failed to load!</td></tr>';
+            throw new Error('Supabase library not loaded');
+        }
+
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        console.log('🔗 Supabase URL:', SUPABASE_URL);
-        console.log('🔑 Connected!');
+        console.log('🔗 Supabase connected!');
 
         // ============================================
-        // AUTH
+        // AUTH - Auto login
         // ============================================
         const EMAIL = 'admin@campaign.com';
         const PASSWORD = 'Campaign123!';
@@ -587,6 +486,7 @@
         let filteredVoters = [];
         let currentPage = 0;
         const PAGE_SIZE = 15;
+        let isLoggedIn = false;
 
         async function autoLogin() {
             try {
@@ -597,17 +497,20 @@
                 if (error) throw error;
                 localStorage.setItem('user', JSON.stringify(data.user));
                 document.getElementById('userInfo').textContent = '✅ ' + data.user.email;
+                isLoggedIn = true;
                 await loadVoters();
                 showToast('✅ Logged in successfully!', 'success');
             } catch (error) {
                 console.error('Login error:', error);
                 document.getElementById('userInfo').textContent = '❌ Login failed';
-                showToast('❌ Login failed. Create user in Supabase Auth.', 'error');
+                showToast('❌ Login failed: ' + error.message + '. Create user in Supabase Auth.', 'error');
+                document.getElementById('tableBody').innerHTML =
+                    `<tr><td colspan="8" class="loading">❌ Login failed: ${error.message}</td></tr>`;
             }
         }
 
         // ============================================
-        // LOAD VOTERS
+        // LOAD VOTERS - SAME AS test.html
         // ============================================
         async function loadVoters() {
             try {
@@ -627,7 +530,7 @@
                 console.error('Error loading:', error);
                 showToast('❌ Error: ' + error.message, 'error');
                 document.getElementById('tableBody').innerHTML =
-                    '<tr><td colspan="8" class="loading">❌ ' + error.message + '</td></tr>';
+                    `<tr><td colspan="8" class="loading">❌ ${error.message}</td></tr>`;
             }
         }
 
@@ -641,8 +544,6 @@
             const undecided = allVoters.filter(v => v.status === 'Undecided').length;
             const reached = allVoters.filter(v => v.status === 'Reached').length;
             const notContacted = allVoters.filter(v => !v.status || v.status === 'Not Contacted').length;
-            const needFollowup = allVoters.filter(v => v.status === 'Need Follow-up').length;
-            const absent = allVoters.filter(v => v.status === 'Absent').length;
 
             document.getElementById('total').textContent = total;
             document.getElementById('supporters').textContent = supporters;
@@ -650,8 +551,6 @@
             document.getElementById('undecided').textContent = undecided;
             document.getElementById('reached').textContent = reached;
             document.getElementById('notContacted').textContent = notContacted;
-            document.getElementById('needFollowup').textContent = needFollowup;
-            document.getElementById('absent').textContent = absent;
         }
 
         // ============================================
@@ -703,12 +602,8 @@
             try {
                 const { error } = await supabase
                     .from('voters')
-                    .update({
-                        status: status,
-                        updated_at: new Date().toISOString()
-                    })
+                    .update({ status, updated_at: new Date().toISOString() })
                     .eq('id', id);
-
                 if (error) throw error;
                 showToast('✅ Status updated to: ' + status, 'success');
                 loadVoters();
@@ -776,7 +671,6 @@
                 document.getElementById('formParty').value = voter.party || '';
                 document.getElementById('formSex').value = voter.sex || '';
                 document.getElementById('formAge').value = voter.age || '';
-                document.getElementById('formPhoto').value = voter.photo || '';
                 document.getElementById('formNotes').value = voter.notes || '';
             } else {
                 document.getElementById('modalTitle').textContent = 'Add Voter';
@@ -806,7 +700,6 @@
                 party: document.getElementById('formParty').value.trim(),
                 sex: document.getElementById('formSex').value.trim(),
                 age: document.getElementById('formAge').value || null,
-                photo: document.getElementById('formPhoto').value.trim(),
                 notes: document.getElementById('formNotes').value.trim(),
                 updated_at: new Date().toISOString()
             };
@@ -841,9 +734,6 @@
             }
         }
 
-        // ============================================
-        // EDIT
-        // ============================================
         function editVoter(id) {
             const voter = allVoters.find(v => v.id === id);
             if (voter) openModal(voter);
@@ -893,8 +783,6 @@
         document.addEventListener('DOMContentLoaded', autoLogin);
 
         console.log('🗳️ CampaignHQ Loaded!');
-        console.log('🔗 Supabase:', SUPABASE_URL);
-        console.log('✅ Using window.supabase.createClient');
         console.log('📊 Table: voters');
     </script>
 

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Voter - Campaign App</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 { margin-bottom: 0.5rem; }
+        .subtitle { color: #6b7280; margin-bottom: 2rem; }
+        .back-link {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+            color: #374151;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .btn-primary { background: #3b82f6; color: white; width: 100%; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-secondary { background: #e5e7eb; color: #4b5563; }
+        .btn-secondary:hover { background: #d1d5db; }
+        .btn-success { background: #22c55e; color: white; }
+        .btn-success:hover { background: #16a34a; }
+        .btn-group { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .btn-group .btn { flex: 1; }
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 500;
+            display: none;
+            z-index: 1000;
+            max-width: 400px;
+        }
+        .toast.success { background: #22c55e; }
+        .toast.error { background: #ef4444; }
+        @media (max-width: 480px) {
+            body { padding: 1rem; }
+            .card { padding: 1rem; }
+            .form-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <a href="/dashboard.html" class="back-link">← Back to Dashboard</a>
+    
+    <div class="card">
+        <h1>➕ Add New Voter</h1>
+        <p class="subtitle">Enter the voter's information below</p>
+        
+        <form id="voterForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name">Full Name *</label>
+                    <input type="text" id="name" required placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label for="nationalId">National ID *</label>
+                    <input type="text" id="nationalId" required placeholder="1234567890">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="district">District</label>
+                    <input type="text" id="district" placeholder="Central District">
+                </div>
+                <div class="form-group">
+                    <label for="house">House</label>
+                    <input type="text" id="house" placeholder="House #123">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="phone">Phone</label>
+                    <input type="tel" id="phone" placeholder="+1234567890">
+                </div>
+                <div class="form-group">
+                    <label for="livesIn">Lives In</label>
+                    <input type="text" id="livesIn" placeholder="City/Area">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="sex">Sex</label>
+                    <select id="sex">
+                        <option value="">Select</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="age">Age</label>
+                    <input type="number" id="age" placeholder="25">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="party">Party</label>
+                    <input type="text" id="party" placeholder="Party Name">
+                </div>
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select id="status">
+                        <option value="Not Contacted">Not Contacted</option>
+                        <option value="Reached">Reached</option>
+                        <option value="Supporter">Supporter</option>
+                        <option value="Undecided">Undecided</option>
+                        <option value="Opposition">Opposition</option>
+                        <option value="Need Follow-up">Need Follow-up</option>
+                        <option value="Absent">Absent</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="photo">Photo URL</label>
+                <input type="url" id="photo" placeholder="https://example.com/photo.jpg">
+            </div>
+            
+            <div class="form-group">
+                <label for="notes">Notes</label>
+                <textarea id="notes" rows="3" placeholder="Additional notes about this voter..."></textarea>
+            </div>
+            
+            <div class="btn-group">
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='/dashboard.html'">Cancel</button>
+                <button type="submit" class="btn btn-success">✅ Save Voter</button>
+            </div>
+        </form>
+    </div>
+    
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // Supabase config
+        const supabase = supabaseClient.createClient(
+            'https://sbomlqemmtcfahtgllzx.supabase.co',
+            'sb_publishable_tU-qC7J1igIq0R_UM1_COA_F-uVpA9Y'
+        );
+
+        // Auth check
+        if (!localStorage.getItem('user')) {
+            window.location.href = '/login.html';
+        }
+
+        const form = document.getElementById('voterForm');
+        const toast = document.getElementById('toast');
+        let toastTimeout;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const voterData = {
+                name: document.getElementById('name').value.trim(),
+                national_id: document.getElementById('nationalId').value.trim(),
+                district: document.getElementById('district').value.trim(),
+                house: document.getElementById('house').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                lives_in: document.getElementById('livesIn').value.trim(),
+                sex: document.getElementById('sex').value,
+                age: parseInt(document.getElementById('age').value) || null,
+                party: document.getElementById('party').value.trim(),
+                status: document.getElementById('status').value,
+                photo: document.getElementById('photo').value.trim(),
+                notes: document.getElementById('notes').value.trim(),
+                created_at: new Date().toISOString()
+            };
+            
+            try {
+                const { error } = await supabase.from('voters').insert([voterData]);
+                if (error) throw error;
+                
+                showToast('✅ Voter added successfully!', 'success');
+                form.reset();
+                document.getElementById('status').value = 'Not Contacted';
+                
+                setTimeout(() => {
+                    window.location.href = '/dashboard.html';
+                }, 1500);
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
+        });
+
+        function showToast(message, type = 'info') {
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.style.display = 'block';
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.style.display = 'none';
+            }, 4000);
+        }
+    </script>
+</body>
+</html>

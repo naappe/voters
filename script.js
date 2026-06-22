@@ -1,6 +1,6 @@
 // -------------------- CONFIGURATION --------------------
-const SUPABASE_URL = 'https://espezmdpkoixnfchomqb.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_T3YWqdZYy1rSla37qOWOmQ_1Dz43nUm';
+const SUPABASE_URL = 'https://espezmdpkoixnfchomqb.supabase.co/rest/v1/';
+const SUPABASE_ANON_KEY = 'sb_publishable_xP8z74zcMuCkj6xlu1bJ3w_Kudqbcu1';
 
 // Initialize the Supabase client with explicit headers
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {

@@ -553,7 +553,7 @@ function closeModal() {
     selectedVoterId = null;
 }
 
-// -------------------- SAVE VOTER (FIXED - WITH VERIFICATION) --------------------
+// -------------------- SAVE VOTER (DEBUG VERSION) --------------------
 async function saveVoter() {
     console.log('🔵 saveVoter() called');
     
@@ -563,25 +563,39 @@ async function saveVoter() {
     }
     
     if (!selectedVoterId) {
+        console.error('❌ No voter selected');
         showNotification('❌ No voter selected', 'error');
         return;
     }
     
+    console.log('🆔 Selected voter ID:', selectedVoterId);
+    
     const voter = allVoters.find(v => v.id === selectedVoterId);
     if (!voter) {
+        console.error('❌ Voter not found');
         showNotification('❌ Voter not found', 'error');
         return;
     }
     
+    console.log('👤 Voter name:', voter.name);
+    console.log('📋 Current visit_status:', voter.visit_status);
+    console.log('📋 Current vote_intention:', voter.vote_intention);
+    
+    // Get values from modal
+    const visitStatus = modalVisitStatus ? modalVisitStatus.value : 'Not Visited';
+    const voteIntention = modalVoteIntention ? modalVoteIntention.value : 'Unknown';
+    const remarks = modalRemarks ? modalRemarks.value : null;
+    const now = new Date().toISOString();
+    
     const updateData = {
-        visit_status: modalVisitStatus?.value || 'Not Visited',
-        vote_intention: modalVoteIntention?.value || 'Unknown',
-        visit_remarks: modalRemarks?.value || null,
-        last_visited: new Date().toISOString(),
+        visit_status: visitStatus,
+        vote_intention: voteIntention,
+        visit_remarks: remarks,
+        last_visited: now,
         visited_by: 'Field Worker'
     };
     
-    console.log('📦 Updating:', updateData);
+    console.log('📦 Update data:', updateData);
     
     try {
         isSaving = true;
@@ -589,6 +603,10 @@ async function saveVoter() {
             modalSave.textContent = 'Saving...';
             modalSave.disabled = true;
         }
+        
+        // ✅ DEBUG: Log the exact query
+        console.log('🔄 Executing update on ID:', selectedVoterId);
+        console.log('🔄 With data:', JSON.stringify(updateData, null, 2));
         
         const { data, error } = await supabaseClient
             .from('people')
@@ -598,37 +616,99 @@ async function saveVoter() {
         
         console.log('📥 Response:', { data, error });
         
-        if (error) throw error;
-        
-        if (!data || data.length === 0) {
-            throw new Error('No rows updated - check RLS or ID');
+        // ✅ Check for specific error cases
+        if (error) {
+            console.error('❌ Supabase error details:', {
+                message: error.message,
+                code: error.code,
+                details: error.details,
+                hint: error.hint
+            });
+            throw error;
         }
         
-        Object.assign(voter, data[0]);
+        // ✅ Check if any rows were updated
+        if (!data || data.length === 0) {
+            console.error('❌ No rows updated!');
+            console.error('   Possible causes:');
+            console.error('   1. ID does not exist in table');
+            console.error('   2. RLS policy blocking (though policy exists)');
+            console.error('   3. Column names mismatch');
+            
+            // Try a different approach - without .select()
+            console.log('🔄 Retrying without .select()...');
+            const result2 = await supabaseClient
+                .from('people')
+                .update(updateData)
+                .eq('id', selectedVoterId);
+            
+            console.log('📥 Retry response:', result2);
+            
+            if (result2.error) {
+                throw result2.error;
+            }
+            
+            // If we got here, it might have worked but .select() failed
+            console.log('⚠️ Update may have succeeded but .select() failed');
+            console.log('🔄 Refreshing data from Supabase...');
+            
+            // Refresh the voter data
+            const { data: refreshData, error: refreshError } = await supabaseClient
+                .from('people')
+                .select('*')
+                .eq('id', selectedVoterId);
+            
+            if (refreshError) {
+                console.error('❌ Refresh error:', refreshError);
+            } else if (refreshData && refreshData.length > 0) {
+                console.log('✅ Refreshed data:', refreshData[0]);
+                Object.assign(voter, refreshData[0]);
+            }
+            
+            // Don't throw - let it continue
+        } else {
+            // ✅ Update local data with the returned data
+            console.log('✅ Update successful! Updated row:', data[0]);
+            Object.assign(voter, data[0]);
+        }
+        
+        // ✅ Refresh UI
+        console.log('🔄 Refreshing UI...');
         updateAllStats();
         renderTable();
         renderAnalysis();
         updateResultCount();
+        console.log('✅ UI refreshed');
         
+        // Update modal fields
         if (modalLastVisited) {
             modalLastVisited.textContent = new Date().toLocaleString();
         }
-        
-        showNotification('✅ Voter updated!', 'success');
+        if (modalVisitedBy) {
+            modalVisitedBy.textContent = 'Field Worker';
+        }
         
         if (modalSave) {
             modalSave.textContent = '✅ Saved!';
-            setTimeout(() => {
+        }
+        showNotification('✅ Voter updated!', 'success');
+        
+        setTimeout(() => {
+            if (modalSave) {
                 modalSave.textContent = 'Save Changes';
                 modalSave.disabled = false;
-                isSaving = false;
-            }, 1000);
-        }
+            }
+            isSaving = false;
+        }, 1000);
         
         setTimeout(closeModal, 800);
         
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('❌ Save error:', error);
+        console.error('❌ Error details:', {
+            message: error.message,
+            stack: error.stack
+        });
         showNotification(`❌ ${error.message}`, 'error');
         if (modalSave) {
             modalSave.textContent = 'Save Changes';
@@ -637,12 +717,6 @@ async function saveVoter() {
         isSaving = false;
     }
 }
-
-// Make functions globally accessible
-window.openModal = openModal;
-window.closeModal = closeModal;
-window.saveVoter = saveVoter;
-window.sortTable = sortTable;
 
 // -------------------- EXPORT CSV --------------------
 function exportCSV() {

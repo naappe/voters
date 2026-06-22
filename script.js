@@ -14,8 +14,10 @@ const fetchPageSize = 1000;
 let sortColumn = 'id';
 let sortDirection = 'asc';
 let isLoading = false;
-let selectedVoterId = null;
 let isSaving = false;
+let selectedVoterId = null;
+let currentTab = 'all';
+let activeTabFilter = null;
 
 // DOM References
 const tableBody = document.getElementById('voter-table-body');
@@ -190,6 +192,7 @@ async function fetchVoters() {
         populateFilters();
         renderTable();
         renderAnalysis();
+        updateTabCounts();
 
     } catch (error) {
         console.error('❌ Error:', error);
@@ -207,6 +210,7 @@ function updateAllStats() {
     updateCampaignProgress();
     updateWinPredictionFormula();
     updateHouseAnalysis();
+    updateTabCounts();
 }
 
 function updateStats() {
@@ -231,6 +235,30 @@ function updateStats() {
     const winPrediction = total > 0 ? Math.round((projectedSupport / total) * 100) : 0;
     if (winPredictionEl) winPredictionEl.textContent = `${winPrediction}%`;
 }
+
+// -------------------- HOUSE FILTER FUNCTION --------------------
+function filterByHouse(houseName) {
+    // Set the search input to the house name
+    if (searchInput) {
+        searchInput.value = houseName;
+        if (clearBtn) clearBtn.style.display = 'block';
+    }
+    
+    // Reset any active tab filter to 'all'
+    switchTab('all');
+    
+    // Apply the filter
+    applyFiltersAndSort();
+    
+    // Show notification
+    showNotification(`🔍 Filtering by house: ${houseName}`, 'info');
+    
+    // Scroll to table
+    document.querySelector('.table-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Make it globally accessible
+window.filterByHouse = filterByHouse;
 
 // -------------------- CAMPAIGN PROGRESS --------------------
 function updateCampaignProgress() {
@@ -314,7 +342,7 @@ function updateWinPredictionFormula() {
     if (formulaStatus) formulaStatus.textContent = status;
 }
 
-// -------------------- HOUSE ANALYSIS --------------------
+// -------------------- HOUSE ANALYSIS (WITH CLICK HANDLERS) --------------------
 function updateHouseAnalysis() {
     const grid = document.getElementById('house-grid');
     if (!grid) return;
@@ -335,12 +363,68 @@ function updateHouseAnalysis() {
     }
     
     grid.innerHTML = sortedHouses.map(([house, count]) => `
-        <div class="house-card">
+        <div class="house-card" onclick="filterByHouse('${escapeHtml(house)}')" style="cursor:pointer;">
             <span class="house-name">${escapeHtml(house)}</span>
             <span class="house-count">${Number(count)}</span>
         </div>
     `).join('');
 }
+
+// -------------------- TAB FUNCTIONALITY --------------------
+function switchTab(tab) {
+    currentTab = tab;
+    QZAZ
+    // Update active class on buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+    
+    // Apply filter based on tab
+    switch(tab) {
+        case 'all':
+            activeTabFilter = null;
+            break;
+        case 'reached':
+            activeTabFilter = { visit_status: 'Reached' };
+            break;
+        case 'not-reached':
+            activeTabFilter = { visit_status: 'Not Reached' };
+            break;
+        case 'not-visited':
+            activeTabFilter = { visit_status: 'Not Visited' };
+            break;
+        case 'will-vote':
+            activeTabFilter = { vote_intention: 'Will Vote' };
+            break;
+        default:
+            activeTabFilter = null;
+    }
+    
+    applyFiltersAndSort();
+}
+
+function updateTabCounts() {
+    const total = allVoters.length;
+    const reached = allVoters.filter(v => v.visit_status === 'Reached').length;
+    const notReached = allVoters.filter(v => v.visit_status === 'Not Reached').length;
+    const notVisited = allVoters.filter(v => v.visit_status === 'Not Visited' || !v.visit_status).length;
+    const willVote = allVoters.filter(v => v.vote_intention === 'Will Vote').length;
+    
+    const allCountEl = document.getElementById('all-count');
+    const reachedCountEl = document.getElementById('reached-count-tab');
+    const notReachedCountEl = document.getElementById('not-reached-count-tab');
+    const notVisitedCountEl = document.getElementById('not-visited-count-tab');
+    const willVoteCountEl = document.getElementById('will-vote-count-tab');
+    
+    if (allCountEl) allCountEl.textContent = total;
+    if (reachedCountEl) reachedCountEl.textContent = reached;
+    if (notReachedCountEl) notReachedCountEl.textContent = notReached;
+    if (notVisitedCountEl) notVisitedCountEl.textContent = notVisited;
+    if (willVoteCountEl) willVoteCountEl.textContent = willVote;
+}
+
+// Make switchTab globally accessible
+window.switchTab = switchTab;
 
 // -------------------- POPULATE FILTERS --------------------
 function populateFilters() {
@@ -385,6 +469,7 @@ function getFilteredVoters() {
     const voteIntention = filterVoteIntention ? filterVoteIntention.value : '';
 
     return allVoters.filter(voter => {
+        // Search
         if (search) {
             const match = 
                 safeString(voter.name).includes(search) ||
@@ -397,6 +482,12 @@ function getFilteredVoters() {
         if (gender && voter.sex !== gender) return false;
         if (visitStatus && voter.visit_status !== visitStatus) return false;
         if (voteIntention && voter.vote_intention !== voteIntention) return false;
+        
+        // ✅ TAB FILTER
+        if (activeTabFilter) {
+            if (activeTabFilter.visit_status && voter.visit_status !== activeTabFilter.visit_status) return false;
+            if (activeTabFilter.vote_intention && voter.vote_intention !== activeTabFilter.vote_intention) return false;
+        }
         
         if (ageRange) {
             const age = parseInt(voter.age);
@@ -527,10 +618,16 @@ function renderAnalysis() {
 
 // -------------------- MODAL FUNCTIONS --------------------
 function openModal(id) {
+    console.log('🔵 openModal called with id:', id);
+    
     const voter = allVoters.find(v => v.id === id);
-    if (!voter) return;
+    if (!voter) {
+        console.error('❌ Voter not found for id:', id);
+        return;
+    }
     
     selectedVoterId = id;
+    console.log('🔵 selectedVoterId set to:', selectedVoterId);
     
     if (modalName) modalName.textContent = voter.name || 'Unnamed';
     if (modalId) modalId.textContent = voter.id;
@@ -553,7 +650,7 @@ function closeModal() {
     selectedVoterId = null;
 }
 
-// -------------------- SAVE VOTER (DEBUG VERSION) --------------------
+// -------------------- SAVE VOTER (WORKING VERSION) --------------------
 async function saveVoter() {
     console.log('🔵 saveVoter() called');
     
@@ -578,8 +675,6 @@ async function saveVoter() {
     }
     
     console.log('👤 Voter name:', voter.name);
-    console.log('📋 Current visit_status:', voter.visit_status);
-    console.log('📋 Current vote_intention:', voter.vote_intention);
     
     // Get values from modal
     const visitStatus = modalVisitStatus ? modalVisitStatus.value : 'Not Visited';
@@ -604,10 +699,6 @@ async function saveVoter() {
             modalSave.disabled = true;
         }
         
-        // ✅ DEBUG: Log the exact query
-        console.log('🔄 Executing update on ID:', selectedVoterId);
-        console.log('🔄 With data:', JSON.stringify(updateData, null, 2));
-        
         const { data, error } = await supabaseClient
             .from('people')
             .update(updateData)
@@ -616,71 +707,28 @@ async function saveVoter() {
         
         console.log('📥 Response:', { data, error });
         
-        // ✅ Check for specific error cases
         if (error) {
-            console.error('❌ Supabase error details:', {
-                message: error.message,
-                code: error.code,
-                details: error.details,
-                hint: error.hint
-            });
+            console.error('❌ Supabase error:', error);
             throw error;
         }
         
-        // ✅ Check if any rows were updated
         if (!data || data.length === 0) {
             console.error('❌ No rows updated!');
-            console.error('   Possible causes:');
-            console.error('   1. ID does not exist in table');
-            console.error('   2. RLS policy blocking (though policy exists)');
-            console.error('   3. Column names mismatch');
-            
-            // Try a different approach - without .select()
-            console.log('🔄 Retrying without .select()...');
-            const result2 = await supabaseClient
-                .from('people')
-                .update(updateData)
-                .eq('id', selectedVoterId);
-            
-            console.log('📥 Retry response:', result2);
-            
-            if (result2.error) {
-                throw result2.error;
-            }
-            
-            // If we got here, it might have worked but .select() failed
-            console.log('⚠️ Update may have succeeded but .select() failed');
-            console.log('🔄 Refreshing data from Supabase...');
-            
-            // Refresh the voter data
-            const { data: refreshData, error: refreshError } = await supabaseClient
-                .from('people')
-                .select('*')
-                .eq('id', selectedVoterId);
-            
-            if (refreshError) {
-                console.error('❌ Refresh error:', refreshError);
-            } else if (refreshData && refreshData.length > 0) {
-                console.log('✅ Refreshed data:', refreshData[0]);
-                Object.assign(voter, refreshData[0]);
-            }
-            
-            // Don't throw - let it continue
-        } else {
-            // ✅ Update local data with the returned data
-            console.log('✅ Update successful! Updated row:', data[0]);
-            Object.assign(voter, data[0]);
+            throw new Error('No rows updated - check RLS or ID');
         }
         
-        // ✅ Refresh UI
-        console.log('🔄 Refreshing UI...');
+        console.log('✅ Update successful! Updated row:', data[0]);
+        
+        // Update local data
+        Object.assign(voter, data[0]);
+        
+        // Refresh UI
         updateAllStats();
         renderTable();
         renderAnalysis();
         updateResultCount();
-        console.log('✅ UI refreshed');
+        updateTabCounts();
         
-        // Update modal fields
         if (modalLastVisited) {
             modalLastVisited.textContent = new Date().toLocaleString();
         }
@@ -705,10 +753,6 @@ async function saveVoter() {
         
     } catch (error) {
         console.error('❌ Save error:', error);
-        console.error('❌ Error details:', {
-            message: error.message,
-            stack: error.stack
-        });
         showNotification(`❌ ${error.message}`, 'error');
         if (modalSave) {
             modalSave.textContent = 'Save Changes';
@@ -717,6 +761,13 @@ async function saveVoter() {
         isSaving = false;
     }
 }
+
+// Make functions globally accessible
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.saveVoter = saveVoter;
+window.sortTable = sortTable;
+window.switchTab = switchTab;
 
 // -------------------- EXPORT CSV --------------------
 function exportCSV() {
@@ -811,6 +862,11 @@ if (exportBtn) exportBtn.addEventListener('click', exportCSV);
 
 const printBtn = document.getElementById('print-view');
 if (printBtn) printBtn.addEventListener('click', () => window.print());
+
+// Set initial tab to 'all'
+document.addEventListener('DOMContentLoaded', function() {
+    switchTab('all');
+});
 
 // -------------------- INIT --------------------
 if (document.readyState === 'loading') {

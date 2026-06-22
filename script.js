@@ -432,6 +432,48 @@ function renderAnalysis() {
     `).join('') || '<div class="analysis-item">No data available</div>';
 }
 
+// -------------------- NOTIFICATION SYSTEM --------------------
+function showNotification(message, type = 'info') {
+    const existing = document.querySelector('.notification');
+    if (existing) existing.remove();
+    
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = message;
+    notification.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 16px 24px;
+        border-radius: 12px;
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        color: white;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 9999;
+        max-width: 400px;
+        animation: slideIn 0.3s ease;
+        font-family: 'Inter', sans-serif;
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transition = 'opacity 0.3s';
+        setTimeout(() => notification.remove(), 300);
+    }, 4000);
+}
+
+// Add animation for notification
+const styleEl = document.createElement('style');
+styleEl.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+`;
+document.head.appendChild(styleEl);
+
 // -------------------- MODAL FUNCTIONS --------------------
 function openModal(id) {
     const voter = allVoters.find(v => v.id === id);
@@ -455,12 +497,20 @@ function closeModal() {
     selectedVoterId = null;
 }
 
-// -------------------- SAVE VOTER (LIVE UPDATE FIX) --------------------
+// -------------------- SAVE VOTER (WORKING VERSION) --------------------
 async function saveVoter() {
-    if (!selectedVoterId) return;
+    if (!selectedVoterId) {
+        console.error('❌ No voter selected');
+        showNotification('❌ No voter selected', 'error');
+        return;
+    }
     
     const voter = allVoters.find(v => v.id === selectedVoterId);
-    if (!voter) return;
+    if (!voter) {
+        console.error('❌ Voter not found');
+        showNotification('❌ Voter not found', 'error');
+        return;
+    }
     
     const updateData = {
         visit_status: modalVisitStatus.value,
@@ -470,31 +520,40 @@ async function saveVoter() {
         visited_by: 'Field Worker'
     };
     
+    console.log('🔄 Updating voter ID:', selectedVoterId);
+    console.log('📦 Update data:', updateData);
+    
     try {
         modalSave.textContent = 'Saving...';
         modalSave.disabled = true;
         
-        const { error } = await supabaseClient
+        const result = await supabaseClient
             .from('people')
             .update(updateData)
             .eq('id', selectedVoterId);
         
-        if (error) throw error;
+        console.log('📥 Result:', result);
         
-        // ✅ Update local data
+        if (result.error) {
+            console.error('❌ Error:', result.error);
+            throw result.error;
+        }
+        
+        // Update local
         Object.assign(voter, updateData);
         
-        // ✅ Refresh ALL stats and table
+        // Refresh all
         updateAllStats();
         renderTable();
         renderAnalysis();
         updateResultCount();
         
-        // Update modal fields
         modalLastVisited.textContent = new Date().toLocaleString();
         modalVisitedBy.textContent = 'Field Worker';
         
         modalSave.textContent = '✅ Saved!';
+        showNotification('✅ Voter updated!', 'success');
+        
         setTimeout(() => {
             modalSave.textContent = 'Save Changes';
             modalSave.disabled = false;
@@ -505,8 +564,8 @@ async function saveVoter() {
         }, 800);
         
     } catch (error) {
-        console.error('❌ Update error:', error);
-        alert(`❌ Failed to update: ${error.message}`);
+        console.error('❌ Error:', error);
+        showNotification(`❌ ${error.message}`, 'error');
         modalSave.textContent = 'Save Changes';
         modalSave.disabled = false;
     }

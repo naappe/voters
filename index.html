@@ -3,21 +3,125 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>People Directory</title>
+    <title>Voter Directory - Analysis</title>
     <link rel="stylesheet" href="style.css" />
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 <body>
     <div class="container">
-        <h1>📋 People Directory</h1>
-        <div id="people-list" class="grid">
-            <!-- Cards will be inserted here -->
-            <div class="loading">⏳ Loading people…</div>
-        </div>
+        <!-- Header -->
+        <header class="header">
+            <h1><i class="fas fa-users"></i> Voter Directory</h1>
+            <p class="subtitle">Complete analysis of all registered voters</p>
+        </header>
+
+        <!-- Stats Dashboard -->
+        <section class="stats-dashboard" id="stats-dashboard">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-user"></i></div>
+                <div class="stat-info">
+                    <span class="stat-label">Total Voters</span>
+                    <span class="stat-value" id="total-voters">0</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-venus-mars"></i></div>
+                <div class="stat-info">
+                    <span class="stat-label">Gender Distribution</span>
+                    <span class="stat-value" id="gender-stats">M: 0 | F: 0</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-building"></i></div>
+                <div class="stat-info">
+                    <span class="stat-label">Parties</span>
+                    <span class="stat-value" id="party-count">0</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
+                <div class="stat-info">
+                    <span class="stat-label">Age Groups</span>
+                    <span class="stat-value" id="age-stats">0</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search & Filter -->
+        <section class="search-section">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" placeholder="Search by name, ID, house, phone..." />
+                <button id="clear-search" class="btn-clear"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="filter-options">
+                <select id="filter-party" class="filter-select">
+                    <option value="">All Parties</option>
+                </select>
+                <select id="filter-gender" class="filter-select">
+                    <option value="">All Genders</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+                <select id="filter-age" class="filter-select">
+                    <option value="">All Ages</option>
+                    <option value="18-25">18-25</option>
+                    <option value="26-35">26-35</option>
+                    <option value="36-50">36-50</option>
+                    <option value="50+">50+</option>
+                </select>
+                <span id="result-count" class="result-count">Showing: 0 voters</span>
+            </div>
+        </section>
+
+        <!-- Voter Table -->
+        <section class="table-container">
+            <div class="table-header">
+                <div class="table-actions">
+                    <button id="export-csv" class="btn-export"><i class="fas fa-file-csv"></i> Export CSV</button>
+                    <button id="print-view" class="btn-print"><i class="fas fa-print"></i> Print</button>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table id="voter-table">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable('id')">ID <i class="fas fa-sort"></i></th>
+                            <th onclick="sortTable('name')">Name <i class="fas fa-sort"></i></th>
+                            <th onclick="sortTable('national_id')">National ID <i class="fas fa-sort"></i></th>
+                            <th onclick="sortTable('house')">House <i class="fas fa-sort"></i></th>
+                            <th onclick="sortTable('phone')">Phone <i class="fas fa-sort"></i></th>
+                            <th onclick="sortTable('sex')">Gender <i class="fas fa-sort"></i></th>
+                            <th onclick="sortTable('age')">Age <i class="fas fa-sort"></i></th>
+                            <th onclick="sortTable('party')">Party <i class="fas fa-sort"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody id="voter-table-body">
+                        <tr><td colspan="8" class="loading">⏳ Loading voters...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="table-footer">
+                <span id="showing-count">Showing 0 of 0 voters</span>
+                <div class="pagination">
+                    <button id="prev-page" class="btn-page"><i class="fas fa-chevron-left"></i></button>
+                    <span id="page-info">Page 1</span>
+                    <button id="next-page" class="btn-page"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Analysis Section -->
+        <section class="analysis-section" id="analysis-section">
+            <h2><i class="fas fa-chart-pie"></i> Data Analysis</h2>
+            <div class="analysis-grid" id="analysis-grid">
+                <!-- Party breakdown will be inserted here -->
+            </div>
+        </section>
     </div>
 
-    <!-- Supabase JS library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Our main script -->
     <script src="script.js"></script>
 </body>
 </html>

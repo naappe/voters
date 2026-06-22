@@ -2,17 +2,8 @@
 const SUPABASE_URL = 'https://espezmdpkoixnfchomqb.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_xP8z74zcMuCkj6xlu1bJ3w_Kudqbcu1';
 
-// Initialize the Supabase client
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: {
-        persistSession: true,
-        autoRefreshToken: true
-    },
-    headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-    }
-});
+// Initialize the Supabase client - v2 syntax
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Reference to the container
 const listContainer = document.getElementById('people-list');

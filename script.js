@@ -2,8 +2,8 @@
 const SUPABASE_URL = 'https://espezmdpkoixnfchomqb.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_xP8z74zcMuCkj6xlu1bJ3w_Kudqbcu1';
 
-// ✅ Initialize Supabase client (no 'window.' prefix)
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// ✅ Create a client instance (same as your working test)
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Reference to the container
 const listContainer = document.getElementById('people-list');
@@ -17,7 +17,8 @@ async function fetchPeople() {
         console.log('URL:', SUPABASE_URL);
         console.log('Table: people');
 
-        const { data, error } = await supabase
+        // ✅ Use the client instance (same as your working test)
+        const { data, error } = await supabaseClient
             .from('people')
             .select('*');
 

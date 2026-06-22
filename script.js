@@ -1,42 +1,60 @@
 // -------------------- CONFIGURATION --------------------
-// Your Supabase URL and anon key (public) – safe to embed in frontend
 const SUPABASE_URL = 'https://espezmdpkoixnfchomqb.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_T3YWqdZYy1rSla37qOWOmQ_1Dz43nUm';
 
-// Initialize the Supabase client
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Initialize the Supabase client with explicit headers
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+        persistSession: true,
+        autoRefreshToken: true
+    },
+    headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+    }
+});
 
 // Reference to the container
 const listContainer = document.getElementById('people-list');
 
 // -------------------- FETCH DATA --------------------
 async function fetchPeople() {
-    // Show loading state
     listContainer.innerHTML = '<div class="loading">⏳ Loading people…</div>';
 
     try {
-        // Query the 'people' table – select all columns
+        console.log('🔍 Connecting to Supabase...');
+        console.log('URL:', SUPABASE_URL);
+        console.log('Table: people');
+        console.log('API Key:', SUPABASE_ANON_KEY.substring(0, 10) + '...'); // Partial for security
+
         const { data, error } = await supabase
             .from('people')
             .select('*');
 
-        if (error) throw error;
+        console.log('📦 Raw response:', { data, error });
 
-        // If no data returned
+        if (error) {
+            console.error('❌ Supabase error:', error);
+            throw error;
+        }
+
         if (!data || data.length === 0) {
+            console.log('ℹ️ No data returned');
             listContainer.innerHTML = '<div class="no-data">😕 No people found in the database.</div>';
             return;
         }
 
-        // Render the cards
+        console.log('✅ Found', data.length, 'records');
         renderPeople(data);
 
     } catch (error) {
-        console.error('Fetch error:', error);
+        console.error('💥 Full error:', error);
         listContainer.innerHTML = `
             <div class="error">
                 ❌ Failed to load data: ${error.message}
-                <br><small>Check console for details.</small>
+                <br><small>Check console (F12) for details.</small>
+                <br><small>URL: ${SUPABASE_URL}</small>
+                <br><small>Table: people</small>
             </div>
         `;
     }
@@ -44,15 +62,12 @@ async function fetchPeople() {
 
 // -------------------- RENDER CARDS --------------------
 function renderPeople(people) {
-    // Clear the container
     listContainer.innerHTML = '';
 
-    // Loop through each person and build a card
     people.forEach(person => {
         const card = document.createElement('div');
         card.className = 'card';
 
-        // Create the inner HTML
         card.innerHTML = `
             <h3>${escapeHtml(person.name) || 'Unnamed'}</h3>
             <p><span class="label">ID</span><span class="value">${person.id}</span></p>

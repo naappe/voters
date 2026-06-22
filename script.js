@@ -1,8 +1,8 @@
 // -------------------- CONFIGURATION --------------------
-const SUPABASE_URL = 'https://espezmdpkoixnfchomqb.supabase.co/rest/v1/';
+const SUPABASE_URL = 'https://espezmdpkoixnfchomqb.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_xP8z74zcMuCkj6xlu1bJ3w_Kudqbcu1';
 
-// Initialize the Supabase client with explicit headers
+// Initialize the Supabase client
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
         persistSession: true,

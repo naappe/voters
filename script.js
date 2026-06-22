@@ -149,7 +149,6 @@ function updateStats() {
     const willVote = allVoters.filter(v => v.vote_intention === 'Will Vote').length;
     willVoteCountEl.textContent = willVote;
 
-    // Win prediction: based on total voters who will vote
     const winPrediction = total > 0 ? Math.round((willVote / total) * 100) : 0;
     winPredictionEl.textContent = `${winPrediction}%`;
 }
@@ -161,21 +160,18 @@ function updateCampaignProgress() {
     const willVote = allVoters.filter(v => v.vote_intention === 'Will Vote').length;
     
     const reachRate = total > 0 ? Math.round((reached / total) * 100) : 0;
-    const neededToWin = Math.ceil(total * 0.5); // 50% of total needed to win
+    const neededToWin = Math.ceil(total * 0.5);
     const remainingNeeded = Math.max(0, neededToWin - willVote);
     
-    // Update progress stats
     progressReached.textContent = reached;
     progressTotal.textContent = total;
     progressPercentage.textContent = `${reachRate}%`;
     progressNeeded.textContent = remainingNeeded;
     
-    // Update progress bar
     const percentage = Math.min(reachRate, 100);
     progressBar.style.width = `${percentage}%`;
     progressBarText.textContent = `${percentage}% reached`;
     
-    // Update status
     let status = '';
     let statusClass = '';
     let message = '';
@@ -219,14 +215,12 @@ function updateWinPredictionFormula() {
     const supporterRate = reached > 0 ? Math.round((willVote / reached) * 100) : 0;
     const winChance = total > 0 ? Math.round((willVote / total) * 100) : 0;
     
-    // Formula steps
     formulaReached.textContent = reached;
     formulaTarget.textContent = neededToWin;
     formulaSupporters.textContent = willVote;
     formulaSupportRate.textContent = `${supporterRate}%`;
     formulaWinChance.textContent = `${winChance}%`;
     
-    // Status message
     let status = '';
     if (willVote >= neededToWin) {
         status = '🏆 WINNER!';
@@ -461,6 +455,7 @@ function closeModal() {
     selectedVoterId = null;
 }
 
+// -------------------- SAVE VOTER (LIVE UPDATE FIX) --------------------
 async function saveVoter() {
     if (!selectedVoterId) return;
     
@@ -486,21 +481,28 @@ async function saveVoter() {
         
         if (error) throw error;
         
+        // ✅ Update local data
         Object.assign(voter, updateData);
         
+        // ✅ Refresh ALL stats and table
         updateAllStats();
         renderTable();
         renderAnalysis();
+        updateResultCount();
         
+        // Update modal fields
         modalLastVisited.textContent = new Date().toLocaleString();
         modalVisitedBy.textContent = 'Field Worker';
         
         modalSave.textContent = '✅ Saved!';
         setTimeout(() => {
             modalSave.textContent = 'Save Changes';
-        }, 1500);
+            modalSave.disabled = false;
+        }, 1000);
         
-        closeModal();
+        setTimeout(() => {
+            closeModal();
+        }, 800);
         
     } catch (error) {
         console.error('❌ Update error:', error);

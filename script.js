@@ -25,7 +25,6 @@ async function fetchPeople() {
         console.log('🔍 Connecting to Supabase...');
         console.log('URL:', SUPABASE_URL);
         console.log('Table: people');
-        console.log('API Key:', SUPABASE_ANON_KEY.substring(0, 10) + '...'); // Partial for security
 
         const { data, error } = await supabase
             .from('people')
@@ -53,8 +52,6 @@ async function fetchPeople() {
             <div class="error">
                 ❌ Failed to load data: ${error.message}
                 <br><small>Check console (F12) for details.</small>
-                <br><small>URL: ${SUPABASE_URL}</small>
-                <br><small>Table: people</small>
             </div>
         `;
     }

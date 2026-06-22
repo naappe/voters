@@ -497,62 +497,86 @@ function closeModal() {
     selectedVoterId = null;
 }
 
-// -------------------- SAVE VOTER (WORKING VERSION) --------------------
+// -------------------- SAVE VOTER (FIXED - MATCHES CONSOLE TEST) --------------------
 async function saveVoter() {
+    console.log('🔵 saveVoter() function called!');
+    
     if (!selectedVoterId) {
         console.error('❌ No voter selected');
         showNotification('❌ No voter selected', 'error');
         return;
     }
     
+    console.log('🆔 Selected voter ID:', selectedVoterId);
+    
     const voter = allVoters.find(v => v.id === selectedVoterId);
     if (!voter) {
-        console.error('❌ Voter not found');
+        console.error('❌ Voter not found in local data');
         showNotification('❌ Voter not found', 'error');
         return;
     }
     
+    console.log('👤 Voter name:', voter.name);
+    console.log('📋 Current visit_status:', voter.visit_status);
+    console.log('📋 Current vote_intention:', voter.vote_intention);
+    
+    // Get values from modal
+    const visitStatus = modalVisitStatus.value;
+    const voteIntention = modalVoteIntention.value;
+    const remarks = modalRemarks.value || null;
+    const now = new Date().toISOString();
+    
     const updateData = {
-        visit_status: modalVisitStatus.value,
-        vote_intention: modalVoteIntention.value,
-        visit_remarks: modalRemarks.value || null,
-        last_visited: new Date().toISOString(),
+        visit_status: visitStatus,
+        vote_intention: voteIntention,
+        visit_remarks: remarks,
+        last_visited: now,
         visited_by: 'Field Worker'
     };
     
-    console.log('🔄 Updating voter ID:', selectedVoterId);
-    console.log('📦 Update data:', updateData);
+    console.log('📦 Update data being sent:', updateData);
     
     try {
         modalSave.textContent = 'Saving...';
         modalSave.disabled = true;
         
+        // ✅ EXACT SAME PATTERN AS THE WORKING CONSOLE TEST
         const result = await supabaseClient
             .from('people')
             .update(updateData)
             .eq('id', selectedVoterId);
         
-        console.log('📥 Result:', result);
+        console.log('📥 Supabase response:', result);
         
         if (result.error) {
-            console.error('❌ Error:', result.error);
+            console.error('❌ Supabase error:', result.error);
             throw result.error;
         }
         
-        // Update local
-        Object.assign(voter, updateData);
+        if (result.status === 204) {
+            console.log('✅ Update successful! (Status 204)');
+        } else {
+            console.log('⚠️ Unexpected status:', result.status);
+        }
         
-        // Refresh all
+        // ✅ Update local data
+        Object.assign(voter, updateData);
+        console.log('✅ Local data updated');
+        
+        // ✅ Refresh ALL UI
+        console.log('🔄 Refreshing UI...');
         updateAllStats();
         renderTable();
         renderAnalysis();
         updateResultCount();
+        console.log('✅ UI refreshed');
         
+        // Update modal fields
         modalLastVisited.textContent = new Date().toLocaleString();
         modalVisitedBy.textContent = 'Field Worker';
         
         modalSave.textContent = '✅ Saved!';
-        showNotification('✅ Voter updated!', 'success');
+        showNotification('✅ Voter updated successfully!', 'success');
         
         setTimeout(() => {
             modalSave.textContent = 'Save Changes';
@@ -564,7 +588,7 @@ async function saveVoter() {
         }, 800);
         
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('❌ Save error:', error);
         showNotification(`❌ ${error.message}`, 'error');
         modalSave.textContent = 'Save Changes';
         modalSave.disabled = false;

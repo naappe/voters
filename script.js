@@ -10,10 +10,12 @@ let allVoters = [];
 let filteredVoters = [];
 let currentPage = 1;
 const pageSize = 50;
+const fetchPageSize = 1000;
 let sortColumn = 'id';
 let sortDirection = 'asc';
 let isLoading = false;
 let selectedVoterId = null;
+let isSaving = false;
 
 // DOM References
 const tableBody = document.getElementById('voter-table-body');
@@ -69,24 +71,96 @@ const modalVisitedBy = document.getElementById('modal-visited-by');
 const modalClose = document.getElementById('modal-close');
 const modalSave = document.getElementById('modal-save');
 
-// -------------------- FETCH DATA (PAGINATED) --------------------
+// -------------------- UTILITY FUNCTIONS --------------------
+
+function escapeHtml(text) {
+    if (text == null) return '';
+    const div = document.createElement('div');
+    div.textContent = String(text);
+    return div.innerHTML;
+}
+
+function safeString(value) {
+    if (value == null) return '';
+    return String(value).toLowerCase();
+}
+
+function safeCssClass(value, defaultValue = 'unknown') {
+    if (!value) return defaultValue;
+    return String(value)
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '');
+}
+
+function csvSafeCell(value) {
+    const str = String(value == null ? '' : value);
+    const safe = str.replace(/^[-+=@]/, "'$&");
+    return `"${safe.replace(/"/g, '""')}"`;
+}
+
+function showNotification(message, type = 'info') {
+    const existing = document.querySelector('.notification');
+    if (existing) existing.remove();
+    
+    const notification = document.createElement('div');
+    notification.innerHTML = message;
+    notification.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 16px 24px;
+        border-radius: 12px;
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        color: white;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 9999;
+        max-width: 400px;
+        animation: slideIn 0.3s ease;
+        font-family: 'Inter', sans-serif;
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transition = 'opacity 0.3s';
+        setTimeout(() => notification.remove(), 300);
+    }, 4000);
+}
+
+// Add notification styles if not present
+if (!document.querySelector('#notification-styles')) {
+    const styleEl = document.createElement('style');
+    styleEl.id = 'notification-styles';
+    styleEl.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    `;
+    document.head.appendChild(styleEl);
+}
+
+// -------------------- FETCH DATA --------------------
 async function fetchVoters() {
     if (isLoading) return;
     isLoading = true;
     
-    tableBody.innerHTML = '<tr><td colspan="10" class="loading">⏳ Loading voters...</td></tr>';
+    if (tableBody) {
+        tableBody.innerHTML = '<tr><td colspan="10" class="loading">⏳ Loading voters...</td></tr>';
+    }
 
     try {
-        console.log('🔄 Fetching ALL voters from Supabase (paginated)...');
+        console.log('🔄 Fetching ALL voters from Supabase...');
         
         let allData = [];
         let page = 0;
-        const pageSize = 1000;
         let hasMore = true;
         
         while (hasMore) {
-            const from = page * pageSize;
-            const to = from + pageSize - 1;
+            const from = page * fetchPageSize;
+            const to = from + fetchPageSize - 1;
             
             const { data, error } = await supabaseClient
                 .from('people')
@@ -99,7 +173,7 @@ async function fetchVoters() {
                 hasMore = false;
             } else {
                 allData = [...allData, ...data];
-                if (data.length < pageSize) {
+                if (data.length < fetchPageSize) {
                     hasMore = false;
                 } else {
                     page++;
@@ -119,13 +193,15 @@ async function fetchVoters() {
 
     } catch (error) {
         console.error('❌ Error:', error);
-        tableBody.innerHTML = `<tr><td colspan="10" class="error">❌ Failed to load data: ${error.message}</td></tr>`;
+        if (tableBody) {
+            tableBody.innerHTML = `<tr><td colspan="10" class="error">❌ Failed to load data: ${escapeHtml(error.message)}</td></tr>`;
+        }
     } finally {
         isLoading = false;
     }
 }
 
-// -------------------- UPDATE ALL STATS --------------------
+// -------------------- UPDATE STATS --------------------
 function updateAllStats() {
     updateStats();
     updateCampaignProgress();
@@ -135,42 +211,45 @@ function updateAllStats() {
 
 function updateStats() {
     const total = allVoters.length;
-    totalVotersEl.textContent = total;
+    if (totalVotersEl) totalVotersEl.textContent = total;
 
     const reached = allVoters.filter(v => v.visit_status === 'Reached').length;
     const notReached = allVoters.filter(v => v.visit_status === 'Not Reached').length;
     
-    reachedCountEl.textContent = reached;
-    notReachedCountEl.textContent = notReached;
+    if (reachedCountEl) reachedCountEl.textContent = reached;
+    if (notReachedCountEl) notReachedCountEl.textContent = notReached;
     
     const reachRate = total > 0 ? Math.round((reached / total) * 100) : 0;
-    reachRateEl.textContent = `${reachRate}%`;
+    if (reachRateEl) reachRateEl.textContent = `${reachRate}%`;
 
     const willVote = allVoters.filter(v => v.vote_intention === 'Will Vote').length;
-    willVoteCountEl.textContent = willVote;
+    if (willVoteCountEl) willVoteCountEl.textContent = willVote;
 
-    const winPrediction = total > 0 ? Math.round((willVote / total) * 100) : 0;
-    winPredictionEl.textContent = `${winPrediction}%`;
+    const reachedWillVote = allVoters.filter(v => v.visit_status === 'Reached' && v.vote_intention === 'Will Vote').length;
+    const supporterRate = reached > 0 ? reachedWillVote / reached : 0;
+    const projectedSupport = Math.round(total * supporterRate);
+    const winPrediction = total > 0 ? Math.round((projectedSupport / total) * 100) : 0;
+    if (winPredictionEl) winPredictionEl.textContent = `${winPrediction}%`;
 }
 
 // -------------------- CAMPAIGN PROGRESS --------------------
 function updateCampaignProgress() {
     const total = allVoters.length;
     const reached = allVoters.filter(v => v.visit_status === 'Reached').length;
-    const willVote = allVoters.filter(v => v.vote_intention === 'Will Vote').length;
+    const reachedWillVote = allVoters.filter(v => v.visit_status === 'Reached' && v.vote_intention === 'Will Vote').length;
     
     const reachRate = total > 0 ? Math.round((reached / total) * 100) : 0;
     const neededToWin = Math.ceil(total * 0.5);
-    const remainingNeeded = Math.max(0, neededToWin - willVote);
+    const remainingNeeded = Math.max(0, neededToWin - reachedWillVote);
     
-    progressReached.textContent = reached;
-    progressTotal.textContent = total;
-    progressPercentage.textContent = `${reachRate}%`;
-    progressNeeded.textContent = remainingNeeded;
+    if (progressReached) progressReached.textContent = reached;
+    if (progressTotal) progressTotal.textContent = total;
+    if (progressPercentage) progressPercentage.textContent = `${reachRate}%`;
+    if (progressNeeded) progressNeeded.textContent = remainingNeeded;
     
     const percentage = Math.min(reachRate, 100);
-    progressBar.style.width = `${percentage}%`;
-    progressBarText.textContent = `${percentage}% reached`;
+    if (progressBar) progressBar.style.width = `${percentage}%`;
+    if (progressBarText) progressBarText.textContent = `${percentage}% reached`;
     
     let status = '';
     let statusClass = '';
@@ -182,10 +261,10 @@ function updateCampaignProgress() {
         statusClass = 'danger';
         message = 'Start your door-to-door campaign to reach voters!';
         icon = '<i class="fas fa-bullhorn"></i>';
-    } else if (willVote >= neededToWin) {
+    } else if (reachedWillVote >= neededToWin) {
         status = '🏆 Winning!';
         statusClass = 'active';
-        message = `🎉 You have ${willVote} confirmed supporters! You're winning!`;
+        message = `🎉 You have ${reachedWillVote} confirmed supporters! You're winning!`;
         icon = '<i class="fas fa-trophy"></i>';
     } else if (reachRate < 50) {
         status = 'In Progress';
@@ -199,30 +278,29 @@ function updateCampaignProgress() {
         icon = '<i class="fas fa-fire"></i>';
     }
     
-    statusText.textContent = status;
-    statusDot.className = `status-dot ${statusClass}`;
-    progressMessage.innerHTML = `${icon} <span>${message}</span>`;
+    if (statusText) statusText.textContent = status;
+    if (statusDot) statusDot.className = `status-dot ${statusClass}`;
+    if (progressMessage) progressMessage.innerHTML = `${icon} <span>${message}</span>`;
 }
 
 // -------------------- WIN PREDICTION FORMULA --------------------
 function updateWinPredictionFormula() {
     const total = allVoters.length;
     const reached = allVoters.filter(v => v.visit_status === 'Reached').length;
-    const willVote = allVoters.filter(v => v.vote_intention === 'Will Vote').length;
+    const reachedWillVote = allVoters.filter(v => v.visit_status === 'Reached' && v.vote_intention === 'Will Vote').length;
     
     const neededToWin = Math.ceil(total * 0.5);
-    const reachRate = total > 0 ? Math.round((reached / total) * 100) : 0;
-    const supporterRate = reached > 0 ? Math.round((willVote / reached) * 100) : 0;
-    const winChance = total > 0 ? Math.round((willVote / total) * 100) : 0;
+    const supporterRate = reached > 0 ? Math.round((reachedWillVote / reached) * 100) : 0;
+    const winChance = total > 0 ? Math.round((reachedWillVote / total) * 100) : 0;
     
-    formulaReached.textContent = reached;
-    formulaTarget.textContent = neededToWin;
-    formulaSupporters.textContent = willVote;
-    formulaSupportRate.textContent = `${supporterRate}%`;
-    formulaWinChance.textContent = `${winChance}%`;
+    if (formulaReached) formulaReached.textContent = reached;
+    if (formulaTarget) formulaTarget.textContent = neededToWin;
+    if (formulaSupporters) formulaSupporters.textContent = reachedWillVote;
+    if (formulaSupportRate) formulaSupportRate.textContent = `${supporterRate}%`;
+    if (formulaWinChance) formulaWinChance.textContent = `${winChance}%`;
     
     let status = '';
-    if (willVote >= neededToWin) {
+    if (reachedWillVote >= neededToWin) {
         status = '🏆 WINNER!';
     } else if (winChance >= 40) {
         status = '📈 Strong Chance';
@@ -233,7 +311,7 @@ function updateWinPredictionFormula() {
     } else {
         status = '🔄 Not Started';
     }
-    formulaStatus.textContent = status;
+    if (formulaStatus) formulaStatus.textContent = status;
 }
 
 // -------------------- HOUSE ANALYSIS --------------------
@@ -259,54 +337,60 @@ function updateHouseAnalysis() {
     grid.innerHTML = sortedHouses.map(([house, count]) => `
         <div class="house-card">
             <span class="house-name">${escapeHtml(house)}</span>
-            <span class="house-count">${count} voters</span>
+            <span class="house-count">${Number(count)}</span>
         </div>
     `).join('');
 }
 
 // -------------------- POPULATE FILTERS --------------------
 function populateFilters() {
-    filterParty.innerHTML = '<option value="">All Parties</option>';
-    const parties = [...new Set(allVoters.map(v => v.party).filter(Boolean))].sort();
-    parties.forEach(party => {
-        const opt = document.createElement('option');
-        opt.value = party;
-        opt.textContent = party;
-        filterParty.appendChild(opt);
-    });
+    if (filterParty) {
+        filterParty.innerHTML = '<option value="">All Parties</option>';
+        const parties = [...new Set(allVoters.map(v => v.party).filter(Boolean))].sort();
+        parties.forEach(party => {
+            const opt = document.createElement('option');
+            opt.value = party;
+            opt.textContent = party;
+            filterParty.appendChild(opt);
+        });
+    }
 
-    filterVisitStatus.innerHTML = `
-        <option value="">All Visit Status</option>
-        <option value="Not Visited">Not Visited</option>
-        <option value="Reached">✅ Reached</option>
-        <option value="Not Reached">❌ Not Reached</option>
-    `;
+    if (filterVisitStatus) {
+        filterVisitStatus.innerHTML = `
+            <option value="">All Visit Status</option>
+            <option value="Not Visited">Not Visited</option>
+            <option value="Reached">✅ Reached</option>
+            <option value="Not Reached">❌ Not Reached</option>
+        `;
+    }
 
-    filterVoteIntention.innerHTML = `
-        <option value="">All Intentions</option>
-        <option value="Unknown">Unknown</option>
-        <option value="Will Vote">👍 Will Vote</option>
-        <option value="Won't Vote">👎 Won't Vote</option>
-        <option value="Undecided">🤔 Undecided</option>
-    `;
+    if (filterVoteIntention) {
+        filterVoteIntention.innerHTML = `
+            <option value="">All Intentions</option>
+            <option value="Unknown">Unknown</option>
+            <option value="Will Vote">👍 Will Vote</option>
+            <option value="Won't Vote">👎 Won't Vote</option>
+            <option value="Undecided">🤔 Undecided</option>
+        `;
+    }
 }
 
 // -------------------- FILTER & SEARCH --------------------
 function getFilteredVoters() {
-    const search = searchInput.value.toLowerCase().trim();
-    const party = filterParty.value;
-    const gender = filterGender.value;
-    const ageRange = filterAge.value;
-    const visitStatus = filterVisitStatus.value;
-    const voteIntention = filterVoteIntention.value;
+    const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const party = filterParty ? filterParty.value : '';
+    const gender = filterGender ? filterGender.value : '';
+    const ageRange = filterAge ? filterAge.value : '';
+    const visitStatus = filterVisitStatus ? filterVisitStatus.value : '';
+    const voteIntention = filterVoteIntention ? filterVoteIntention.value : '';
 
     return allVoters.filter(voter => {
         if (search) {
             const match = 
-                (voter.name?.toLowerCase() || '').includes(search) ||
-                (voter.national_id?.toLowerCase() || '').includes(search) ||
-                (voter.house?.toLowerCase() || '').includes(search) ||
-                (voter.phone?.toLowerCase() || '').includes(search);
+                safeString(voter.name).includes(search) ||
+                safeString(voter.national_id).includes(search) ||
+                safeString(voter.house).includes(search) ||
+                safeString(voter.phone).includes(search);
             if (!match) return false;
         }
         if (party && voter.party !== party) return false;
@@ -365,6 +449,8 @@ function applyFiltersAndSort() {
 
 // -------------------- RENDER TABLE --------------------
 function renderTable() {
+    if (!tableBody) return;
+    
     const totalPages = Math.ceil(filteredVoters.length / pageSize) || 1;
     if (currentPage > totalPages) currentPage = totalPages;
     if (currentPage < 1) currentPage = 1;
@@ -375,6 +461,7 @@ function renderTable() {
 
     if (pageData.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="10" class="no-data">😕 No voters found</td></tr>';
+        if (showingCount) showingCount.textContent = 'Showing 0 of 0 voters';
     } else {
         tableBody.innerHTML = pageData.map(voter => `
             <tr onclick="openModal(${voter.id})" style="cursor:pointer;">
@@ -386,28 +473,34 @@ function renderTable() {
                 <td>${escapeHtml(voter.sex) || 'N/A'}</td>
                 <td>${escapeHtml(voter.age) || 'N/A'}</td>
                 <td><span class="party-tag">${escapeHtml(voter.party) || 'N/A'}</span></td>
-                <td><span class="status-tag ${(voter.visit_status || 'not-visited').toLowerCase().replace(' ', '-')}">${escapeHtml(voter.visit_status) || 'Not Visited'}</span></td>
-                <td><span class="intention-tag ${(voter.vote_intention || 'unknown').toLowerCase().replace(' ', '-').replace("'", '')}">${escapeHtml(voter.vote_intention) || 'Unknown'}</span></td>
+                <td><span class="status-tag ${safeCssClass(voter.visit_status, 'not-visited')}">${escapeHtml(voter.visit_status) || 'Not Visited'}</span></td>
+                <td><span class="intention-tag ${safeCssClass(voter.vote_intention, 'unknown')}">${escapeHtml(voter.vote_intention) || 'Unknown'}</span></td>
             </tr>
         `).join('');
+        
+        if (showingCount) {
+            showingCount.textContent = `Showing ${start + 1}-${end} of ${filteredVoters.length} voters`;
+        }
     }
 
-    showingCount.textContent = `Showing ${start + 1}-${end} of ${filteredVoters.length} voters`;
-    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-    prevBtn.disabled = currentPage <= 1;
-    nextBtn.disabled = currentPage >= totalPages;
+    if (pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+    if (prevBtn) prevBtn.disabled = currentPage <= 1;
+    if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
 }
 
 // -------------------- UPDATE RESULT COUNT --------------------
 function updateResultCount() {
-    resultCount.textContent = `Showing: ${filteredVoters.length} of ${allVoters.length} voters`;
+    if (resultCount) {
+        resultCount.textContent = `Showing: ${filteredVoters.length} of ${allVoters.length} voters`;
+    }
 }
 
 // -------------------- RENDER ANALYSIS --------------------
 function renderAnalysis() {
-    const data = filteredVoters.length > 0 ? filteredVoters : allVoters;
     const grid = document.getElementById('analysis-grid');
     if (!grid) return;
+    
+    const data = filteredVoters.length > 0 ? filteredVoters : allVoters;
     if (!data || data.length === 0) {
         grid.innerHTML = '<div class="analysis-item">No data available</div>';
         return;
@@ -432,48 +525,6 @@ function renderAnalysis() {
     `).join('') || '<div class="analysis-item">No data available</div>';
 }
 
-// -------------------- NOTIFICATION SYSTEM --------------------
-function showNotification(message, type = 'info') {
-    const existing = document.querySelector('.notification');
-    if (existing) existing.remove();
-    
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = message;
-    notification.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        padding: 16px 24px;
-        border-radius: 12px;
-        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
-        color: white;
-        font-weight: 500;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 9999;
-        max-width: 400px;
-        animation: slideIn 0.3s ease;
-        font-family: 'Inter', sans-serif;
-    `;
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transition = 'opacity 0.3s';
-        setTimeout(() => notification.remove(), 300);
-    }, 4000);
-}
-
-// Add animation for notification
-const styleEl = document.createElement('style');
-styleEl.textContent = `
-    @keyframes slideIn {
-        from { transform: translateX(100px); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-`;
-document.head.appendChild(styleEl);
-
 // -------------------- MODAL FUNCTIONS --------------------
 function openModal(id) {
     const voter = allVoters.find(v => v.id === id);
@@ -481,117 +532,109 @@ function openModal(id) {
     
     selectedVoterId = id;
     
-    modalName.textContent = voter.name || 'Unnamed';
-    modalId.textContent = voter.id;
-    modalVisitStatus.value = voter.visit_status || 'Not Visited';
-    modalVoteIntention.value = voter.vote_intention || 'Unknown';
-    modalRemarks.value = voter.visit_remarks || '';
-    modalLastVisited.textContent = voter.last_visited ? new Date(voter.last_visited).toLocaleString() : 'Never';
-    modalVisitedBy.textContent = voter.visited_by || 'Not assigned';
+    if (modalName) modalName.textContent = voter.name || 'Unnamed';
+    if (modalId) modalId.textContent = voter.id;
+    if (modalVisitStatus) modalVisitStatus.value = voter.visit_status || 'Not Visited';
+    if (modalVoteIntention) modalVoteIntention.value = voter.vote_intention || 'Unknown';
+    if (modalRemarks) modalRemarks.value = voter.visit_remarks || '';
+    if (modalLastVisited) {
+        modalLastVisited.textContent = voter.last_visited ? new Date(voter.last_visited).toLocaleString() : 'Never';
+    }
+    if (modalVisitedBy) modalVisitedBy.textContent = voter.visited_by || 'Not assigned';
     
-    modal.style.display = 'flex';
+    if (modal) modal.style.display = 'flex';
 }
 
 function closeModal() {
-    modal.style.display = 'none';
+    if (modal) modal.style.display = 'none';
+    if (modalRemarks) modalRemarks.value = '';
+    if (modalVisitStatus) modalVisitStatus.value = 'Not Visited';
+    if (modalVoteIntention) modalVoteIntention.value = 'Unknown';
     selectedVoterId = null;
 }
 
-// -------------------- SAVE VOTER (FIXED - MATCHES CONSOLE TEST) --------------------
+// -------------------- SAVE VOTER (FIXED - WITH VERIFICATION) --------------------
 async function saveVoter() {
-    console.log('🔵 saveVoter() function called!');
+    console.log('🔵 saveVoter() called');
+    
+    if (isSaving) {
+        console.log('⏳ Already saving');
+        return;
+    }
     
     if (!selectedVoterId) {
-        console.error('❌ No voter selected');
         showNotification('❌ No voter selected', 'error');
         return;
     }
     
-    console.log('🆔 Selected voter ID:', selectedVoterId);
-    
     const voter = allVoters.find(v => v.id === selectedVoterId);
     if (!voter) {
-        console.error('❌ Voter not found in local data');
         showNotification('❌ Voter not found', 'error');
         return;
     }
     
-    console.log('👤 Voter name:', voter.name);
-    console.log('📋 Current visit_status:', voter.visit_status);
-    console.log('📋 Current vote_intention:', voter.vote_intention);
-    
-    // Get values from modal
-    const visitStatus = modalVisitStatus.value;
-    const voteIntention = modalVoteIntention.value;
-    const remarks = modalRemarks.value || null;
-    const now = new Date().toISOString();
-    
     const updateData = {
-        visit_status: visitStatus,
-        vote_intention: voteIntention,
-        visit_remarks: remarks,
-        last_visited: now,
+        visit_status: modalVisitStatus?.value || 'Not Visited',
+        vote_intention: modalVoteIntention?.value || 'Unknown',
+        visit_remarks: modalRemarks?.value || null,
+        last_visited: new Date().toISOString(),
         visited_by: 'Field Worker'
     };
     
-    console.log('📦 Update data being sent:', updateData);
+    console.log('📦 Updating:', updateData);
     
     try {
-        modalSave.textContent = 'Saving...';
-        modalSave.disabled = true;
+        isSaving = true;
+        if (modalSave) {
+            modalSave.textContent = 'Saving...';
+            modalSave.disabled = true;
+        }
         
-        // ✅ EXACT SAME PATTERN AS THE WORKING CONSOLE TEST
-        const result = await supabaseClient
+        const { data, error } = await supabaseClient
             .from('people')
             .update(updateData)
-            .eq('id', selectedVoterId);
+            .eq('id', selectedVoterId)
+            .select();
         
-        console.log('📥 Supabase response:', result);
+        console.log('📥 Response:', { data, error });
         
-        if (result.error) {
-            console.error('❌ Supabase error:', result.error);
-            throw result.error;
+        if (error) throw error;
+        
+        if (!data || data.length === 0) {
+            throw new Error('No rows updated - check RLS or ID');
         }
         
-        if (result.status === 204) {
-            console.log('✅ Update successful! (Status 204)');
-        } else {
-            console.log('⚠️ Unexpected status:', result.status);
-        }
-        
-        // ✅ Update local data
-        Object.assign(voter, updateData);
-        console.log('✅ Local data updated');
-        
-        // ✅ Refresh ALL UI
-        console.log('🔄 Refreshing UI...');
+        Object.assign(voter, data[0]);
         updateAllStats();
         renderTable();
         renderAnalysis();
         updateResultCount();
-        console.log('✅ UI refreshed');
         
-        // Update modal fields
-        modalLastVisited.textContent = new Date().toLocaleString();
-        modalVisitedBy.textContent = 'Field Worker';
+        if (modalLastVisited) {
+            modalLastVisited.textContent = new Date().toLocaleString();
+        }
         
-        modalSave.textContent = '✅ Saved!';
-        showNotification('✅ Voter updated successfully!', 'success');
+        showNotification('✅ Voter updated!', 'success');
         
-        setTimeout(() => {
-            modalSave.textContent = 'Save Changes';
-            modalSave.disabled = false;
-        }, 1000);
+        if (modalSave) {
+            modalSave.textContent = '✅ Saved!';
+            setTimeout(() => {
+                modalSave.textContent = 'Save Changes';
+                modalSave.disabled = false;
+                isSaving = false;
+            }, 1000);
+        }
         
-        setTimeout(() => {
-            closeModal();
-        }, 800);
+        setTimeout(closeModal, 800);
         
     } catch (error) {
-        console.error('❌ Save error:', error);
+        console.error('❌ Error:', error);
         showNotification(`❌ ${error.message}`, 'error');
-        modalSave.textContent = 'Save Changes';
-        modalSave.disabled = false;
+        if (modalSave) {
+            modalSave.textContent = 'Save Changes';
+            modalSave.disabled = false;
+        }
+        isSaving = false;
     }
 }
 
@@ -621,7 +664,7 @@ function exportCSV() {
 
     let csv = headers.join(',') + '\n';
     rows.forEach(row => {
-        csv += row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',') + '\n';
+        csv += row.map(cell => csvSafeCell(cell)).join(',') + '\n';
     });
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -635,58 +678,65 @@ function exportCSV() {
     URL.revokeObjectURL(url);
 }
 
-// -------------------- UTILITY --------------------
-function escapeHtml(text) {
-    if (!text) return text;
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+// -------------------- EVENT LISTENERS --------------------
+if (searchInput) {
+    searchInput.addEventListener('input', () => {
+        if (clearBtn) clearBtn.style.display = searchInput.value ? 'block' : 'none';
+        applyFiltersAndSort();
+    });
 }
 
-// -------------------- EVENT LISTENERS --------------------
-searchInput.addEventListener('input', () => {
-    clearBtn.style.display = searchInput.value ? 'block' : 'none';
-    applyFiltersAndSort();
-});
+if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+        if (searchInput) {
+            searchInput.value = '';
+            clearBtn.style.display = 'none';
+            applyFiltersAndSort();
+        }
+    });
+}
 
-clearBtn.addEventListener('click', () => {
-    searchInput.value = '';
-    clearBtn.style.display = 'none';
-    applyFiltersAndSort();
-});
+if (filterParty) filterParty.addEventListener('change', applyFiltersAndSort);
+if (filterGender) filterGender.addEventListener('change', applyFiltersAndSort);
+if (filterAge) filterAge.addEventListener('change', applyFiltersAndSort);
+if (filterVisitStatus) filterVisitStatus.addEventListener('change', applyFiltersAndSort);
+if (filterVoteIntention) filterVoteIntention.addEventListener('change', applyFiltersAndSort);
 
-filterParty.addEventListener('change', applyFiltersAndSort);
-filterGender.addEventListener('change', applyFiltersAndSort);
-filterAge.addEventListener('change', applyFiltersAndSort);
-filterVisitStatus.addEventListener('change', applyFiltersAndSort);
-filterVoteIntention.addEventListener('change', applyFiltersAndSort);
+if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+        if (currentPage > 1) { currentPage--; renderTable(); }
+    });
+}
 
-prevBtn.addEventListener('click', () => {
-    if (currentPage > 1) { currentPage--; renderTable(); }
-});
+if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+        const totalPages = Math.ceil(filteredVoters.length / pageSize);
+        if (currentPage < totalPages) { currentPage++; renderTable(); }
+    });
+}
 
-nextBtn.addEventListener('click', () => {
-    const totalPages = Math.ceil(filteredVoters.length / pageSize);
-    if (currentPage < totalPages) { currentPage++; renderTable(); }
-});
+if (modalClose) modalClose.addEventListener('click', closeModal);
+if (modalSave) modalSave.addEventListener('click', saveVoter);
 
-modalClose.addEventListener('click', closeModal);
-modalSave.addEventListener('click', saveVoter);
-
-modal.addEventListener('click', (e) => {
-    if (e.target === modal) closeModal();
-});
+if (modal) {
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+}
 
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeModal();
     if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault();
-        searchInput.focus();
+        if (searchInput) searchInput.focus();
     }
 });
 
-document.getElementById('export-csv')?.addEventListener('click', exportCSV);
-document.getElementById('print-view')?.addEventListener('click', () => window.print());
+const exportBtn = document.getElementById('export-csv');
+if (exportBtn) exportBtn.addEventListener('click', exportCSV);
+
+const printBtn = document.getElementById('print-view');
+if (printBtn) printBtn.addEventListener('click', () => window.print());
 
 // -------------------- INIT --------------------
 if (document.readyState === 'loading') {

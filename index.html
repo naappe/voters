@@ -1,20 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>People Directory</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
     <div class="container">
         <h1>📋 People Directory</h1>
         <div id="people-list" class="grid">
-            <p>Loading people...</p>
+            <!-- Cards will be inserted here -->
+            <div class="loading">Loading people…</div>
         </div>
     </div>
 
-    <!-- Include Supabase JS library -->
+    <!-- Supabase JS library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Our main script -->
     <script src="script.js"></script>

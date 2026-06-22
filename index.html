@@ -3,48 +3,191 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Voter Directory - Analysis</title>
+    <title>Voter Campaign Tracker</title>
     <link rel="stylesheet" href="style.css" />
-    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 </head>
 <body>
     <div class="container">
         <!-- Header -->
         <header class="header">
-            <h1><i class="fas fa-users"></i> Voter Directory</h1>
-            <p class="subtitle">Complete analysis of all registered voters</p>
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="logo-icon"><i class="fas fa-vote-yea"></i></div>
+                    <div>
+                        <h1>Voter Campaign Tracker</h1>
+                        <p class="subtitle">Door-to-door campaign management & analytics</p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <span class="badge">Live</span>
+                    <span class="update-time"><i class="fas fa-sync-alt"></i> Auto-sync</span>
+                </div>
+            </div>
         </header>
+
+        <!-- Campaign Progress Card -->
+        <section class="campaign-progress" id="campaign-progress">
+            <div class="progress-card">
+                <div class="progress-header">
+                    <div class="progress-title">
+                        <i class="fas fa-bullseye"></i>
+                        <h3>Campaign Progress</h3>
+                    </div>
+                    <div class="progress-status" id="progress-status">
+                        <span class="status-dot"></span>
+                        <span id="status-text">Loading...</span>
+                    </div>
+                </div>
+                <div class="progress-body">
+                    <div class="progress-stats">
+                        <div class="progress-stat">
+                            <span class="stat-number" id="progress-reached">0</span>
+                            <span class="stat-label">Reached</span>
+                        </div>
+                        <div class="progress-stat">
+                            <span class="stat-number" id="progress-total">0</span>
+                            <span class="stat-label">Total Voters</span>
+                        </div>
+                        <div class="progress-stat">
+                            <span class="stat-number" id="progress-percentage">0%</span>
+                            <span class="stat-label">Reach Rate</span>
+                        </div>
+                        <div class="progress-stat">
+                            <span class="stat-number" id="progress-needed">0</span>
+                            <span class="stat-label">Needed to Win</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progress-bar" style="width: 0%;"></div>
+                        <div class="progress-bar-label">
+                            <span>0%</span>
+                            <span id="progress-bar-text">Starting campaign...</span>
+                            <span>100%</span>
+                        </div>
+                    </div>
+                    <div class="progress-message" id="progress-message">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Start your campaign to reach voters!</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Win Prediction Logic -->
+        <section class="prediction-section">
+            <div class="prediction-card">
+                <div class="prediction-header">
+                    <i class="fas fa-trophy"></i>
+                    <h3>Win Prediction Formula</h3>
+                </div>
+                <div class="prediction-body">
+                    <div class="prediction-formula">
+                        <div class="formula-step">
+                            <span class="step-number">1</span>
+                            <div class="step-content">
+                                <h4>Reach Voters</h4>
+                                <p>Knock on doors and connect with voters</p>
+                                <div class="step-stats">
+                                    <span>Reached: <strong id="formula-reached">0</strong></span>
+                                    <span>Target: <strong id="formula-target">0</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="formula-arrow">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                        <div class="formula-step">
+                            <span class="step-number">2</span>
+                            <div class="step-content">
+                                <h4>Identify Supporters</h4>
+                                <p>Ask voters if they will vote for you</p>
+                                <div class="step-stats">
+                                    <span>Supporters: <strong id="formula-supporters">0</strong></span>
+                                    <span>Rate: <strong id="formula-support-rate">0%</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="formula-arrow">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                        <div class="formula-step">
+                            <span class="step-number">3</span>
+                            <div class="step-content">
+                                <h4>Win Prediction</h4>
+                                <p>Your current win probability</p>
+                                <div class="step-stats">
+                                    <span>Win Chance: <strong id="formula-win-chance">0%</strong></span>
+                                    <span>Status: <strong id="formula-status">Not Started</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="prediction-actions">
+                        <div class="action-tip">
+                            <i class="fas fa-lightbulb"></i>
+                            <span><strong>To increase your win chance:</strong> Reach more voters and convert them to supporters. Each reached supporter increases your win probability!</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <!-- Stats Dashboard -->
         <section class="stats-dashboard" id="stats-dashboard">
             <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-user"></i></div>
+                <div class="stat-icon blue"><i class="fas fa-users"></i></div>
                 <div class="stat-info">
                     <span class="stat-label">Total Voters</span>
                     <span class="stat-value" id="total-voters">0</span>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-venus-mars"></i></div>
+                <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
                 <div class="stat-info">
-                    <span class="stat-label">Gender Distribution</span>
-                    <span class="stat-value" id="gender-stats">M: 0 | F: 0</span>
+                    <span class="stat-label">Reached</span>
+                    <span class="stat-value" id="reached-count">0</span>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-building"></i></div>
+                <div class="stat-icon red"><i class="fas fa-times-circle"></i></div>
                 <div class="stat-info">
-                    <span class="stat-label">Parties</span>
-                    <span class="stat-value" id="party-count">0</span>
+                    <span class="stat-label">Not Reached</span>
+                    <span class="stat-value" id="not-reached-count">0</span>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
+                <div class="stat-icon purple"><i class="fas fa-percent"></i></div>
                 <div class="stat-info">
-                    <span class="stat-label">Age Groups</span>
-                    <span class="stat-value" id="age-stats">0</span>
+                    <span class="stat-label">Reach Rate</span>
+                    <span class="stat-value" id="reach-rate">0%</span>
                 </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon gold"><i class="fas fa-thumbs-up"></i></div>
+                <div class="stat-info">
+                    <span class="stat-label">Will Vote</span>
+                    <span class="stat-value" id="will-vote-count">0</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon teal"><i class="fas fa-trophy"></i></div>
+                <div class="stat-info">
+                    <span class="stat-label">Win Prediction</span>
+                    <span class="stat-value" id="win-prediction">0%</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- House Analysis -->
+        <section class="house-analysis" id="house-analysis">
+            <div class="section-header">
+                <h2><i class="fas fa-home"></i> Top Voter Households</h2>
+                <span class="section-badge">Focus Areas</span>
+            </div>
+            <div class="house-grid" id="house-grid">
+                <!-- House cards will be inserted here -->
             </div>
         </section>
 
@@ -71,6 +214,19 @@
                     <option value="36-50">36-50</option>
                     <option value="50+">50+</option>
                 </select>
+                <select id="filter-visit-status" class="filter-select">
+                    <option value="">All Visit Status</option>
+                    <option value="Not Visited">Not Visited</option>
+                    <option value="Reached">✅ Reached</option>
+                    <option value="Not Reached">❌ Not Reached</option>
+                </select>
+                <select id="filter-vote-intention" class="filter-select">
+                    <option value="">All Intentions</option>
+                    <option value="Unknown">Unknown</option>
+                    <option value="Will Vote">👍 Will Vote</option>
+                    <option value="Won't Vote">👎 Won't Vote</option>
+                    <option value="Undecided">🤔 Undecided</option>
+                </select>
                 <span id="result-count" class="result-count">Showing: 0 voters</span>
             </div>
         </section>
@@ -95,10 +251,12 @@
                             <th onclick="sortTable('sex')">Gender <i class="fas fa-sort"></i></th>
                             <th onclick="sortTable('age')">Age <i class="fas fa-sort"></i></th>
                             <th onclick="sortTable('party')">Party <i class="fas fa-sort"></i></th>
+                            <th onclick="sortTable('visit_status')">Visit <i class="fas fa-sort"></i></th>
+                            <th onclick="sortTable('vote_intention')">Intention <i class="fas fa-sort"></i></th>
                         </tr>
                     </thead>
                     <tbody id="voter-table-body">
-                        <tr><td colspan="8" class="loading">⏳ Loading voters...</td></tr>
+                        <tr><td colspan="10" class="loading">⏳ Loading voters...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -114,11 +272,59 @@
 
         <!-- Analysis Section -->
         <section class="analysis-section" id="analysis-section">
-            <h2><i class="fas fa-chart-pie"></i> Data Analysis</h2>
+            <div class="section-header">
+                <h2><i class="fas fa-chart-pie"></i> Party Analysis</h2>
+                <span class="section-badge">Breakdown</span>
+            </div>
             <div class="analysis-grid" id="analysis-grid">
                 <!-- Party breakdown will be inserted here -->
             </div>
         </section>
+    </div>
+
+    <!-- Modal for editing voter -->
+    <div id="voter-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-name">Voter</h2>
+                <span id="modal-close" class="modal-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="modal-field">
+                    <label>ID: <span id="modal-id"></span></label>
+                </div>
+                <div class="modal-field">
+                    <label for="modal-visit-status">Visit Status:</label>
+                    <select id="modal-visit-status">
+                        <option value="Not Visited">Not Visited</option>
+                        <option value="Reached">✅ Reached</option>
+                        <option value="Not Reached">❌ Not Reached</option>
+                    </select>
+                </div>
+                <div class="modal-field">
+                    <label for="modal-vote-intention">Vote Intention:</label>
+                    <select id="modal-vote-intention">
+                        <option value="Unknown">Unknown</option>
+                        <option value="Will Vote">👍 Will Vote</option>
+                        <option value="Won't Vote">👎 Won't Vote</option>
+                        <option value="Undecided">🤔 Undecided</option>
+                    </select>
+                </div>
+                <div class="modal-field">
+                    <label for="modal-remarks">Remarks/Notes:</label>
+                    <textarea id="modal-remarks" rows="3" placeholder="Add notes about the visit..."></textarea>
+                </div>
+                <div class="modal-field">
+                    <label>Last Visited: <span id="modal-last-visited">Never</span></label>
+                </div>
+                <div class="modal-field">
+                    <label>Visited By: <span id="modal-visited-by">Not assigned</span></label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-save" class="btn-save"><i class="fas fa-save"></i> Save Changes</button>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

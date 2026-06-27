@@ -1643,6 +1643,157 @@ button {
     transition: all 0.3s ease;
 }
 
+/* Modern Gallery Card Styles */
+.voter-card.modern {
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--bg-card);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    position: relative;
+}
+
+.voter-card.modern:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+}
+
+.card-photo-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1/1;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f0f2f5, #e8ecf2);
+    padding: 8px;
+}
+
+.card-photo-frame .card-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+.card-photo-frame .card-photo-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+    color: #c0c8d4;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f5f7fa, #e4e8ed);
+}
+
+.mdp-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.mdp-badge i {
+    font-size: 10px;
+}
+
+.voter-card.modern .card-body {
+    padding: 16px 18px 18px;
+}
+
+.voter-card.modern .card-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 2px;
+    color: var(--text-primary);
+}
+
+.voter-card.modern .card-id {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.voter-card.modern .card-house {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.voter-card.modern .card-status {
+    display: inline-block;
+    font-size: 11px;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+    margin-top: 8px;
+}
+
+.voter-card.modern .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+}
+
+.voter-card.modern .card-remarks {
+    font-size: 11px;
+    color: #6b7a8f;
+    font-style: italic;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Status badge colors */
+.status-will-vote {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-not-vote {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    .voter-card.modern {
+        background: #1a2332;
+    }
+    
+    .card-photo-frame {
+        background: #1e293b;
+    }
+    
+    .card-photo-frame .card-photo-placeholder {
+        background: #1e293b;
+        color: #4a5a6e;
+    }
+    
+    .voter-card.modern .card-remarks {
+        color: #8a9aae;
+    }
+}
+
 /* ============================================
    DARK MODE
    ============================================ */

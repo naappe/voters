@@ -1,5 +1,5 @@
 // app.js - Main application logic with Supabase data + Settings
-// FIXED: Clean news with clickable navigation
+// FIXED: Removed mobile updates, modern UI with framed photos, MDP filter
 
 // ============================================
 // CHECK CONFIG FIRST
@@ -214,7 +214,7 @@ function updateTypeCounts() {
 }
 
 // ============================================
-// FILTER VOTER TYPE - Called from stats cards
+// FILTER VOTER TYPE
 // ============================================
 function filterVoterType(type) {
     currentVoterType = type;
@@ -247,7 +247,7 @@ function filterVoterType(type) {
 }
 
 // ============================================
-// FILTER BY HOUSE - Called from house cards
+// FILTER BY HOUSE
 // ============================================
 function filterByHouse(house) {
     var houseFilter = document.getElementById('houseFilter');
@@ -300,7 +300,6 @@ function generateNewsFromData() {
     
     var news = [];
     
-    // 1. Total Voters
     news.push({
         title: '📊 Total Voters: ' + total + ' registered',
         link: '#',
@@ -314,7 +313,6 @@ function generateNewsFromData() {
         filterValue: 'all'
     });
     
-    // 2. Pending Voters (if any)
     if (pending > 0) {
         news.push({
             title: '⏳ ' + pending + ' voters pending decision',
@@ -330,7 +328,6 @@ function generateNewsFromData() {
         });
     }
     
-    // 3. Will Vote (if any)
     if (willVote > 0) {
         news.push({
             title: '🗳️ ' + willVote + ' voters will vote (' + willVotePct + '%)',
@@ -346,7 +343,6 @@ function generateNewsFromData() {
         });
     }
     
-    // 4. Not Vote (if any)
     if (notVote > 0) {
         news.push({
             title: '❌ ' + notVote + ' voters will not vote',
@@ -362,7 +358,6 @@ function generateNewsFromData() {
         });
     }
     
-    // 5. Reached (if any)
     if (reached > 0) {
         news.push({
             title: '✅ ' + reached + ' voters reached (' + reachedPct + '%)',
@@ -378,7 +373,6 @@ function generateNewsFromData() {
         });
     }
     
-    // 6. MDP Voters
     if (mdp > 0) {
         news.push({
             title: '🏛️ ' + mdp + ' MDP voters in the system',
@@ -394,7 +388,6 @@ function generateNewsFromData() {
         });
     }
     
-    // 7. Top House
     if (topHouse !== 'None' && topHouseCount > 0) {
         news.push({
             title: '🏠 Top house: ' + topHouse + ' (' + topHouseCount + ' voters)',
@@ -410,7 +403,6 @@ function generateNewsFromData() {
         });
     }
     
-    // 8. Add house-specific news (top 5 houses with low reach)
     for (var h = 0; h < Math.min(sortedHouses.length, 5); h++) {
         var houseName = sortedHouses[h][0];
         var houseCount = sortedHouses[h][1];
@@ -433,7 +425,6 @@ function generateNewsFromData() {
         }
     }
     
-    // 9. Overall engagement
     news.push({
         title: '📈 Overall engagement: ' + reachedPct + '% reached',
         link: '#',
@@ -453,12 +444,22 @@ function generateNewsFromData() {
 // ============================================
 // HANDLE NEWS CLICK
 // ============================================
-function handleNewsClick(item) {
-    if (item.action === 'filter') {
-        filterVoterType(item.filterValue);
-    } else if (item.action === 'house') {
-        filterByHouse(item.filterValue);
-    } else {
+function handleNewsClick(element) {
+    try {
+        var newsData = element.dataset.news;
+        if (!newsData) return;
+        
+        var item = JSON.parse(newsData);
+        
+        if (item.action === 'filter' && item.filterValue) {
+            filterVoterType(item.filterValue);
+        } else if (item.action === 'house' && item.filterValue) {
+            filterByHouse(item.filterValue);
+        } else {
+            navigateTo('voters');
+        }
+    } catch (e) {
+        console.error('Error handling news click:', e);
         navigateTo('voters');
     }
 }
@@ -547,6 +548,7 @@ async function init() {
     setupNewsSlider();
     setupSettings();
     setupClickableCards();
+    setupMDPFilter();
     
     renderDashboard();
     renderVoters();
@@ -556,6 +558,25 @@ async function init() {
     renderNewsSlider();
     
     console.log('✅ App initialized successfully with ' + allVoters.length + ' voters');
+}
+
+// ============================================
+// SETUP MDP FILTER
+// ============================================
+function setupMDPFilter() {
+    // Add MDP filter button if not exists
+    var typeSelector = document.querySelector('.voter-type-selector');
+    if (typeSelector) {
+        var existingMDP = typeSelector.querySelector('.type-btn[data-type="mdp"]');
+        if (!existingMDP) {
+            var mdpBtn = document.createElement('button');
+            mdpBtn.className = 'type-btn';
+            mdpBtn.dataset.type = 'mdp';
+            mdpBtn.innerHTML = '<i class="fas fa-flag"></i> MDP Voters <span class="type-count" id="mdpCount">0</span>';
+            mdpBtn.onclick = function() { filterVoterType('mdp'); };
+            typeSelector.appendChild(mdpBtn);
+        }
+    }
 }
 
 // ============================================
@@ -669,9 +690,10 @@ function setupSettings() {
             if (pwd === 'settings123') {
                 settingsAuthenticated = true;
                 overlay.classList.add('hidden');
+                overlay.style.display = 'none';
                 content.style.display = 'block';
                 renderSettings();
-                showToast('✅ Settings unlocked', 'success');
+                showToast('✅ Settings unlocked successfully!', 'success');
             } else {
                 error.classList.add('show');
                 input.value = '';
@@ -696,11 +718,19 @@ function checkSettingsAuth() {
     
     if (settingsAuthenticated) {
         overlay.classList.add('hidden');
+        overlay.style.display = 'none';
         content.style.display = 'block';
         renderSettings();
     } else {
         overlay.classList.remove('hidden');
+        overlay.style.display = 'flex';
         content.style.display = 'none';
+        var input = document.getElementById('settingsPasswordInput');
+        if (input) {
+            setTimeout(function() {
+                input.focus();
+            }, 300);
+        }
     }
 }
 
@@ -1034,7 +1064,7 @@ function renderCharts() {
 }
 
 // ============================================
-// RENDER VOTERS
+// RENDER VOTERS - MODERN GALLERY WITH FRAMED PHOTOS
 // ============================================
 function renderVoters() {
     var container = document.getElementById('voterContainer');
@@ -1043,13 +1073,13 @@ function renderVoters() {
     if (currentView === 'gallery') {
         container.className = 'gallery';
         container.style.display = 'grid';
-        container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(200px, 1fr))';
-        container.style.gap = '16px';
+        container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(220px, 1fr))';
+        container.style.gap = '20px';
     } else {
         container.className = 'list';
         container.style.display = 'flex';
         container.style.flexDirection = 'column';
-        container.style.gap = '8px';
+        container.style.gap = '10px';
     }
 
     var start = (currentPage - 1) * PAGE_SIZE;
@@ -1065,7 +1095,7 @@ function renderVoters() {
     var html = '';
     if (currentView === 'gallery') {
         for (var i = 0; i < pageVoters.length; i++) {
-            html += createGalleryCard(pageVoters[i]);
+            html += createModernGalleryCard(pageVoters[i]);
         }
     } else {
         for (var i = 0; i < pageVoters.length; i++) {
@@ -1079,9 +1109,9 @@ function renderVoters() {
 }
 
 // ============================================
-// CREATE GALLERY CARD
+// MODERN GALLERY CARD WITH FRAMED PHOTO
 // ============================================
-function createGalleryCard(v) {
+function createModernGalleryCard(v) {
     var voteStatus = v.vote_status || 'pending';
     var statusClass = voteStatus === 'will-vote' ? 'status-will-vote' : (voteStatus === 'not-vote' ? 'status-not-vote' : 'status-pending');
     var label = voteStatus === 'will-vote' ? '🗳️ Will Vote' : (voteStatus === 'not-vote' ? '❌ Not Vote' : '⏳ Pending');
@@ -1095,33 +1125,34 @@ function createGalleryCard(v) {
     var isMDP = party === 'MDP';
     var remarks = v.remarks || '';
     
-    var cardHtml = '<div class="voter-card" onclick="openModal(' + v.id + ')">';
+    var cardHtml = '<div class="voter-card modern" onclick="openModal(' + v.id + ')">';
     
+    // Framed photo with shadow
+    cardHtml += '<div class="card-photo-frame">';
     if (photoUrl) {
         cardHtml += '<img class="card-photo" src="' + photoUrl + '" alt="' + name + '" loading="lazy" />';
     } else {
-        cardHtml += '<div class="card-photo" style="display:flex;align-items:center;justify-content:center;font-size:48px;color:#c0c8d4;background:#f0f2f5;min-height:200px;">👤</div>';
+        cardHtml += '<div class="card-photo-placeholder">👤</div>';
     }
+    // MDP badge overlay
+    if (isMDP) {
+        cardHtml += '<div class="mdp-badge"><i class="fas fa-flag"></i> MDP</div>';
+    }
+    cardHtml += '</div>';
     
     cardHtml += '<div class="card-body">';
     cardHtml += '<div class="card-name">' + name + '</div>';
     cardHtml += '<div class="card-id">🆔 ' + nationalId + '</div>';
     cardHtml += '<div class="card-house">🏠 ' + house + '</div>';
-    
-    if (isMDP) {
-        cardHtml += '<span style="font-size:10px;color:#f59e0b;font-weight:600;">🏛️ MDP</span>';
-    }
-    
     cardHtml += '<span class="card-status ' + statusClass + '">' + label + '</span>';
     cardHtml += '<div class="card-footer">';
     cardHtml += '<span>' + (reachStatus === 'reached' ? '✅ Reached' : '⏳ Not Reached') + '</span>';
     cardHtml += '<span>' + age + ' yrs</span>';
-    
+    cardHtml += '</div>';
     if (remarks) {
-        cardHtml += '<span style="font-size:10px;color:#6b7a8f;display:block;margin-top:4px;font-style:italic;">📝 ' + remarks.substring(0, 30) + (remarks.length > 30 ? '...' : '') + '</span>';
+        cardHtml += '<div class="card-remarks">📝 ' + remarks.substring(0, 25) + (remarks.length > 25 ? '...' : '') + '</div>';
     }
-    
-    cardHtml += '</div></div></div>';
+    cardHtml += '</div></div>';
     
     return cardHtml;
 }
@@ -1469,7 +1500,7 @@ function resetAutoSlide() {
 }
 
 // ============================================
-// RENDER NEWS - CLEAN CLICKABLE VERSION
+// RENDER NEWS
 // ============================================
 function renderNews() {
     var grid = document.getElementById('newsGrid');
@@ -1507,30 +1538,7 @@ function renderNews() {
 }
 
 // ============================================
-// HANDLE NEWS CLICK - GLOBAL FUNCTION
-// ============================================
-function handleNewsClick(element) {
-    try {
-        var newsData = element.dataset.news;
-        if (!newsData) return;
-        
-        var item = JSON.parse(newsData);
-        
-        if (item.action === 'filter' && item.filterValue) {
-            filterVoterType(item.filterValue);
-        } else if (item.action === 'house' && item.filterValue) {
-            filterByHouse(item.filterValue);
-        } else {
-            navigateTo('voters');
-        }
-    } catch (e) {
-        console.error('Error handling news click:', e);
-        navigateTo('voters');
-    }
-}
-
-// ============================================
-// MODAL - MOBILE-ONLY VIEW
+// MODAL - CLEAN VIEW ONLY (NO MOBILE UPDATES)
 // ============================================
 function setupModal() {
     var closeBtn = document.getElementById('modalClose');
@@ -1573,9 +1581,9 @@ function openModal(id) {
     var photoUrl = voter.photo_url || '';
     
     if (photoUrl) {
-        photo.innerHTML = '<img src="' + photoUrl + '" alt="' + (voter.name || 'Voter') + '" loading="lazy" />';
+        photo.innerHTML = '<img src="' + photoUrl + '" alt="' + (voter.name || 'Voter') + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />';
     } else {
-        photo.innerHTML = '<span class="placeholder">👤</span>';
+        photo.innerHTML = '<span class="placeholder" style="font-size:44px;">👤</span>';
     }
 
     document.getElementById('modalName').textContent = voter.name || 'Unknown';
@@ -1595,57 +1603,12 @@ function openModal(id) {
     };
     document.getElementById('modalStatus').textContent = statusMap[voteStatus] || '⏳ Pending';
 
-    document.getElementById('modalPhoneInput').value = voter.phone || '';
-    document.getElementById('modalReachStatus').value = voter.reach_status || 'not-reached';
-    document.getElementById('modalVoteStatus').value = voter.vote_status || 'pending';
-    document.getElementById('modalRemarks').value = voter.remarks || '';
-
     document.getElementById('modalOverlay').classList.add('show');
 }
 
 function closeModal() {
     document.getElementById('modalOverlay').classList.remove('show');
     currentEditingId = null;
-}
-
-async function saveVoter() {
-    if (!currentEditingId) return;
-
-    var updates = {
-        phone: document.getElementById('modalPhoneInput').value.trim(),
-        reach_status: document.getElementById('modalReachStatus').value,
-        vote_status: document.getElementById('modalVoteStatus').value,
-        remarks: document.getElementById('modalRemarks').value.trim() || null,
-    };
-
-    try {
-        var tableName = (window.APP_CONFIG && window.APP_CONFIG.tableName) || 'full_import';
-        var { error } = await window.supabaseClient
-            .from(tableName)
-            .update(updates)
-            .eq('id', currentEditingId);
-
-        if (error) throw error;
-
-        for (var i = 0; i < allVoters.length; i++) {
-            if (allVoters[i].id === currentEditingId) {
-                for (var key in updates) {
-                    if (updates.hasOwnProperty(key)) {
-                        allVoters[i][key] = updates[key];
-                    }
-                }
-                break;
-            }
-        }
-
-        closeModal();
-        refreshAll();
-        showToast('✅ Voter updated successfully!');
-
-    } catch (err) {
-        console.error('Error saving voter:', err);
-        showToast('❌ Error: ' + err.message, 'error');
-    }
 }
 
 // ============================================

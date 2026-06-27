@@ -1,5 +1,5 @@
 // app.js - Main application logic with Supabase data + Settings
-// FIXED: Mobile-only view, clean design, remarks logic
+// FIXED: Clean news with clickable navigation
 
 // ============================================
 // CHECK CONFIG FIRST
@@ -272,10 +272,10 @@ function filterByHouse(house) {
 }
 
 // ============================================
-// GENERATE NEWS FROM DATA
+// GENERATE CLEAN NEWS FROM DATA
 // ============================================
 function generateNewsFromData() {
-    console.log('📰 Generating news from voter data...');
+    console.log('📰 Generating clean news from voter data...');
     
     var now = new Date();
     var total = allVoters.length || 0;
@@ -298,111 +298,181 @@ function generateNewsFromData() {
     var topHouse = sortedHouses.length > 0 ? sortedHouses[0][0] : 'None';
     var topHouseCount = sortedHouses.length > 0 ? sortedHouses[0][1] : 0;
     
-    var news = [
-        {
-            title: '📊 Total Voters: ' + total + ' registered',
+    var news = [];
+    
+    // 1. Total Voters
+    news.push({
+        title: '📊 Total Voters: ' + total + ' registered',
+        link: '#',
+        source: 'System',
+        type: 'system',
+        icon: 'fa-users',
+        date: now.toISOString(),
+        new: true,
+        action: 'filter',
+        filterType: 'all',
+        filterValue: 'all'
+    });
+    
+    // 2. Pending Voters (if any)
+    if (pending > 0) {
+        news.push({
+            title: '⏳ ' + pending + ' voters pending decision',
             link: '#',
             source: 'System',
             type: 'system',
-            icon: 'fa-users',
-            date: now.toISOString(),
-            new: true
-        },
-        {
-            title: '✅ ' + reached + ' voters reached (' + reachedPct + '%)',
-            link: '#',
-            source: 'System',
-            type: 'system',
-            icon: 'fa-check-circle',
+            icon: 'fa-clock',
             date: new Date(now - 3600000).toISOString(),
-            new: true
-        },
-        {
+            new: true,
+            action: 'filter',
+            filterType: 'pending',
+            filterValue: 'pending'
+        });
+    }
+    
+    // 3. Will Vote (if any)
+    if (willVote > 0) {
+        news.push({
             title: '🗳️ ' + willVote + ' voters will vote (' + willVotePct + '%)',
             link: '#',
             source: 'System',
             type: 'system',
             icon: 'fa-vote-yea',
             date: new Date(now - 7200000).toISOString(),
-            new: true
-        },
-        {
-            title: '⏳ ' + pending + ' voters pending decision',
-            link: '#',
-            source: 'System',
-            type: 'system',
-            icon: 'fa-clock',
-            date: new Date(now - 10800000).toISOString(),
-            new: true
-        },
-        {
-            title: '🏛️ ' + mdp + ' MDP voters in the system',
-            link: '#',
-            source: 'System',
-            type: 'system',
-            icon: 'fa-flag',
-            date: new Date(now - 14400000).toISOString(),
-            new: false
-        },
-        {
-            title: '🏠 Top house: ' + topHouse + ' (' + topHouseCount + ' voters)',
-            link: '#',
-            source: 'System',
-            type: 'system',
-            icon: 'fa-home',
-            date: new Date(now - 18000000).toISOString(),
-            new: false
-        },
-        {
+            new: true,
+            action: 'filter',
+            filterType: 'will-vote',
+            filterValue: 'will-vote'
+        });
+    }
+    
+    // 4. Not Vote (if any)
+    if (notVote > 0) {
+        news.push({
             title: '❌ ' + notVote + ' voters will not vote',
             link: '#',
             source: 'System',
             type: 'system',
             icon: 'fa-times-circle',
-            date: new Date(now - 21600000).toISOString(),
-            new: false
-        },
-        {
-            title: '📈 Overall engagement: ' + reachedPct + '% reached',
+            date: new Date(now - 10800000).toISOString(),
+            new: true,
+            action: 'filter',
+            filterType: 'not-vote',
+            filterValue: 'not-vote'
+        });
+    }
+    
+    // 5. Reached (if any)
+    if (reached > 0) {
+        news.push({
+            title: '✅ ' + reached + ' voters reached (' + reachedPct + '%)',
             link: '#',
             source: 'System',
             type: 'system',
-            icon: 'fa-chart-line',
-            date: new Date(now - 25200000).toISOString(),
-            new: false
-        }
-    ];
+            icon: 'fa-check-circle',
+            date: new Date(now - 14400000).toISOString(),
+            new: true,
+            action: 'filter',
+            filterType: 'reached',
+            filterValue: 'reached'
+        });
+    }
     
-    for (var h = 0; h < Math.min(sortedHouses.length, 3); h++) {
+    // 6. MDP Voters
+    if (mdp > 0) {
+        news.push({
+            title: '🏛️ ' + mdp + ' MDP voters in the system',
+            link: '#',
+            source: 'System',
+            type: 'system',
+            icon: 'fa-flag',
+            date: new Date(now - 18000000).toISOString(),
+            new: false,
+            action: 'filter',
+            filterType: 'mdp',
+            filterValue: 'mdp'
+        });
+    }
+    
+    // 7. Top House
+    if (topHouse !== 'None' && topHouseCount > 0) {
+        news.push({
+            title: '🏠 Top house: ' + topHouse + ' (' + topHouseCount + ' voters)',
+            link: '#',
+            source: 'System',
+            type: 'system',
+            icon: 'fa-home',
+            date: new Date(now - 21600000).toISOString(),
+            new: false,
+            action: 'house',
+            filterType: 'house',
+            filterValue: topHouse
+        });
+    }
+    
+    // 8. Add house-specific news (top 5 houses with low reach)
+    for (var h = 0; h < Math.min(sortedHouses.length, 5); h++) {
         var houseName = sortedHouses[h][0];
         var houseCount = sortedHouses[h][1];
         var houseReached = allVoters.filter(function(v) { return v.house === houseName && v.reach_status === 'reached'; }).length;
         var housePct = houseCount ? Math.round((houseReached/houseCount)*100) : 0;
         
-        news.push({
-            title: '🏠 ' + houseName + ': ' + houseReached + '/' + houseCount + ' reached (' + housePct + '%)',
-            link: '#',
-            source: 'System',
-            type: 'house',
-            icon: 'fa-building',
-            date: new Date(now - 28800000 - (h * 3600000)).toISOString(),
-            new: false
-        });
+        if (housePct < 50) {
+            news.push({
+                title: '⚠️ ' + houseName + ': ' + houseReached + '/' + houseCount + ' reached (' + housePct + '%)',
+                link: '#',
+                source: 'System',
+                type: 'house',
+                icon: 'fa-building',
+                date: new Date(now - 25200000 - (h * 3600000)).toISOString(),
+                new: false,
+                action: 'house',
+                filterType: 'house',
+                filterValue: houseName
+            });
+        }
     }
     
+    // 9. Overall engagement
+    news.push({
+        title: '📈 Overall engagement: ' + reachedPct + '% reached',
+        link: '#',
+        source: 'System',
+        type: 'system',
+        icon: 'fa-chart-line',
+        date: new Date(now - 28800000).toISOString(),
+        new: false,
+        action: 'filter',
+        filterType: 'reached',
+        filterValue: 'reached'
+    });
+    
     return news;
+}
+
+// ============================================
+// HANDLE NEWS CLICK
+// ============================================
+function handleNewsClick(item) {
+    if (item.action === 'filter') {
+        filterVoterType(item.filterValue);
+    } else if (item.action === 'house') {
+        filterByHouse(item.filterValue);
+    } else {
+        navigateTo('voters');
+    }
 }
 
 // ============================================
 // FETCH NEWS
 // ============================================
 async function fetchNews() {
-    console.log('📰 Generating news from data...');
+    console.log('📰 Generating clean news from data...');
     newsItems = generateNewsFromData();
     newsItems.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
     newsItems = newsItems.slice(0, 15);
     updateBadges();
-    console.log('✅ Generated ' + newsItems.length + ' news items from data');
+    console.log('✅ Generated ' + newsItems.length + ' clean news items');
     return newsItems;
 }
 
@@ -1323,13 +1393,15 @@ function renderNewsSlider() {
     var html = '';
     for (var i = 0; i < latestNews.length; i++) {
         var item = latestNews[i];
-        var onclickAttr = (item.link && item.link !== '#') ? ' onclick="window.open(\'' + item.link + '\', \'_blank\')"' : '';
-        html += '<div class="news-slide"' + onclickAttr + ' style="cursor:' + (item.link && item.link !== '#' ? 'pointer' : 'default') + '">';
+        var onclickAttr = ' onclick="handleNewsClick(this)" data-news=\'' + JSON.stringify(item).replace(/'/g, "&#39;") + '\'';
+        var cursorStyle = 'cursor:pointer;';
+        
+        html += '<div class="news-slide"' + onclickAttr + ' style="' + cursorStyle + '">';
         html += '<div class="news-icon"><i class="fas ' + (item.icon || 'fa-newspaper') + '"></i></div>';
         html += '<div class="news-content">';
         html += '<div class="news-title">' + item.title + '</div>';
         html += '<div class="news-source">';
-        html += '<i class="fas fa-source"></i> ' + (item.source || 'Unknown');
+        html += '<i class="fas fa-source"></i> ' + (item.source || 'System');
         if (item.new) {
             html += ' <span style="background:#ef4444;color:white;padding:1px 8px;border-radius:12px;font-size:10px;margin-left:8px;">NEW</span>';
         }
@@ -1397,7 +1469,7 @@ function resetAutoSlide() {
 }
 
 // ============================================
-// RENDER NEWS
+// RENDER NEWS - CLEAN CLICKABLE VERSION
 // ============================================
 function renderNews() {
     var grid = document.getElementById('newsGrid');
@@ -1415,20 +1487,46 @@ function renderNews() {
     var html = '';
     for (var i = 0; i < newsItems.length; i++) {
         var item = newsItems[i];
-        var onclickAttr = (item.link && item.link !== '#') ? ' onclick="window.open(\'' + item.link + '\', \'_blank\')"' : '';
-        html += '<div class="news-item"' + onclickAttr + ' style="cursor:' + (item.link && item.link !== '#' ? 'pointer' : 'default') + '">';
+        var onclickAttr = ' onclick="handleNewsClick(this)" data-news=\'' + JSON.stringify(item).replace(/'/g, "&#39;") + '\'';
+        var cursorStyle = 'cursor:pointer;';
+        
+        html += '<div class="news-item"' + onclickAttr + ' style="' + cursorStyle + '">';
         html += '<div class="news-title">';
         html += '<i class="fas ' + (item.icon || 'fa-newspaper') + '" style="color:#3b82f6;margin-right:8px;"></i>';
         html += item.title;
         html += '</div>';
         html += '<div class="news-meta">';
-        html += '<i class="fas fa-source"></i> ' + (item.source || 'Unknown');
+        html += '<i class="fas fa-source"></i> ' + (item.source || 'System');
         if (item.new) {
             html += ' <span style="background:#ef4444;color:white;padding:1px 10px;border-radius:12px;font-size:10px;margin-left:8px;">NEW</span>';
         }
+        html += ' <span style="color:#6b7a8f;font-size:11px;margin-left:8px;">↗ Click to view</span>';
         html += '</div></div>';
     }
     grid.innerHTML = html;
+}
+
+// ============================================
+// HANDLE NEWS CLICK - GLOBAL FUNCTION
+// ============================================
+function handleNewsClick(element) {
+    try {
+        var newsData = element.dataset.news;
+        if (!newsData) return;
+        
+        var item = JSON.parse(newsData);
+        
+        if (item.action === 'filter' && item.filterValue) {
+            filterVoterType(item.filterValue);
+        } else if (item.action === 'house' && item.filterValue) {
+            filterByHouse(item.filterValue);
+        } else {
+            navigateTo('voters');
+        }
+    } catch (e) {
+        console.error('Error handling news click:', e);
+        navigateTo('voters');
+    }
 }
 
 // ============================================
@@ -1483,7 +1581,6 @@ function openModal(id) {
     document.getElementById('modalName').textContent = voter.name || 'Unknown';
     document.getElementById('modalId').textContent = 'ID ' + (voter.national_id || 'N/A');
 
-    // Populate details
     document.getElementById('modalHouse').textContent = voter.house || '—';
     document.getElementById('modalAge').textContent = voter.age || '—';
     document.getElementById('modalParty').textContent = voter.party || '—';
@@ -1498,7 +1595,6 @@ function openModal(id) {
     };
     document.getElementById('modalStatus').textContent = statusMap[voteStatus] || '⏳ Pending';
 
-    // Form fields
     document.getElementById('modalPhoneInput').value = voter.phone || '';
     document.getElementById('modalReachStatus').value = voter.reach_status || 'not-reached';
     document.getElementById('modalVoteStatus').value = voter.vote_status || 'pending';
@@ -1616,6 +1712,7 @@ window.filterByHouse = filterByHouse;
 window.exportData = exportData;
 window.deleteVoterSettings = deleteVoterSettings;
 window.clearAllData = clearAllData;
+window.handleNewsClick = handleNewsClick;
 
 // ============================================
 // TOAST

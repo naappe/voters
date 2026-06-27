@@ -1,5 +1,5 @@
 // app.js - Main application logic with Supabase data + Settings
-// FIXED: MDP filter, fixed image sizes, mobile nav auto-hide
+// FIXED: Mobile navigation, dashboard loading, UI alignment, save functionality
 
 // ============================================
 // CHECK CONFIG FIRST
@@ -273,10 +273,10 @@ function filterByHouse(house) {
 }
 
 // ============================================
-// GENERATE CLEAN NEWS FROM DATA
+// GENERATE NEWS FROM DATA
 // ============================================
 function generateNewsFromData() {
-    console.log('📰 Generating clean news from voter data...');
+    console.log('📰 Generating news from voter data...');
     
     var now = new Date();
     var total = allVoters.length || 0;
@@ -469,12 +469,12 @@ function handleNewsClick(element) {
 // FETCH NEWS
 // ============================================
 async function fetchNews() {
-    console.log('📰 Generating clean news from data...');
+    console.log('📰 Generating news from data...');
     newsItems = generateNewsFromData();
     newsItems.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
     newsItems = newsItems.slice(0, 15);
     updateBadges();
-    console.log('✅ Generated ' + newsItems.length + ' clean news items');
+    console.log('✅ Generated ' + newsItems.length + ' news items');
     return newsItems;
 }
 
@@ -549,7 +549,6 @@ async function init() {
     setupNewsSlider();
     setupSettings();
     setupClickableCards();
-    setupMDPFilter();
     setupMobileNav();
     
     renderDashboard();
@@ -563,60 +562,42 @@ async function init() {
 }
 
 // ============================================
-// SETUP MOBILE NAV - AUTO HIDE
+// SETUP MOBILE NAV
 // ============================================
 function setupMobileNav() {
-    // Close mobile menu when clicking outside
+    // Close menu when clicking outside
     document.addEventListener('click', function(e) {
         if (window.innerWidth <= 768) {
-            var sidebar = document.getElementById('sidebar');
+            var sidebarEl = document.getElementById('sidebar');
             var toggle = document.getElementById('menuToggle');
-            if (sidebar && !sidebar.contains(e.target) && !toggle.contains(e.target)) {
-                sidebar.classList.remove('open');
+            if (sidebarEl && !sidebarEl.contains(e.target) && toggle && !toggle.contains(e.target)) {
+                sidebarEl.classList.remove('open');
                 isMobileMenuOpen = false;
             }
         }
     });
     
-    // Close mobile menu when window resizes to desktop
+    // Close menu on resize to desktop
     window.addEventListener('resize', function() {
         if (window.innerWidth > 768) {
-            var sidebar = document.getElementById('sidebar');
-            if (sidebar) {
-                sidebar.classList.remove('open');
+            var sidebarEl = document.getElementById('sidebar');
+            if (sidebarEl) {
+                sidebarEl.classList.remove('open');
                 isMobileMenuOpen = false;
             }
         }
     });
     
-    // Toggle menu on button click
+    // Toggle menu
     if (menuToggle) {
         menuToggle.addEventListener('click', function(e) {
             e.stopPropagation();
-            var sidebar = document.getElementById('sidebar');
-            if (sidebar) {
-                sidebar.classList.toggle('open');
-                isMobileMenuOpen = sidebar.classList.contains('open');
+            var sidebarEl = document.getElementById('sidebar');
+            if (sidebarEl) {
+                sidebarEl.classList.toggle('open');
+                isMobileMenuOpen = sidebarEl.classList.contains('open');
             }
         });
-    }
-}
-
-// ============================================
-// SETUP MDP FILTER
-// ============================================
-function setupMDPFilter() {
-    var typeSelector = document.querySelector('.voter-type-selector');
-    if (typeSelector) {
-        var existingMDP = typeSelector.querySelector('.type-btn[data-type="mdp"]');
-        if (!existingMDP) {
-            var mdpBtn = document.createElement('button');
-            mdpBtn.className = 'type-btn';
-            mdpBtn.dataset.type = 'mdp';
-            mdpBtn.innerHTML = '<i class="fas fa-flag"></i> MDP Voters <span class="type-count" id="mdpCount">0</span>';
-            mdpBtn.onclick = function() { filterVoterType('mdp'); };
-            typeSelector.appendChild(mdpBtn);
-        }
     }
 }
 
@@ -976,11 +957,17 @@ function renderDashboard() {
     var notVote = allVoters.filter(function(v) { return v.vote_status === 'not-vote'; }).length;
     var pending = allVoters.filter(function(v) { return v.vote_status === 'pending' || !v.vote_status; }).length;
 
-    document.getElementById('statTotal').textContent = total;
-    document.getElementById('statReached').textContent = reached;
-    document.getElementById('statWillVote').textContent = willVote;
-    document.getElementById('statNotVote').textContent = notVote;
-    document.getElementById('statPending').textContent = pending;
+    var statTotal = document.getElementById('statTotal');
+    var statReached = document.getElementById('statReached');
+    var statWillVote = document.getElementById('statWillVote');
+    var statNotVote = document.getElementById('statNotVote');
+    var statPending = document.getElementById('statPending');
+    
+    if (statTotal) statTotal.textContent = total;
+    if (statReached) statReached.textContent = reached;
+    if (statWillVote) statWillVote.textContent = willVote;
+    if (statNotVote) statNotVote.textContent = notVote;
+    if (statPending) statPending.textContent = pending;
 
     renderTopHouses();
     renderCharts();
@@ -1003,8 +990,9 @@ function renderTopHouses() {
 
     var grid = document.getElementById('topHousesGrid');
     if (sorted.length === 0) {
-        grid.innerHTML = '<div class="loading">No houses found</div>';
-        document.getElementById('topHousesCount').textContent = '';
+        if (grid) grid.innerHTML = '<div class="loading">No houses found</div>';
+        var countEl = document.getElementById('topHousesCount');
+        if (countEl) countEl.textContent = '';
         return;
     }
 
@@ -1018,9 +1006,10 @@ function renderTopHouses() {
         html += '<span class="house-count">' + count + '</span>';
         html += '</div>';
     }
-    grid.innerHTML = html;
+    if (grid) grid.innerHTML = html;
 
-    document.getElementById('topHousesCount').textContent = 'Top ' + sorted.length + ' houses';
+    var countEl = document.getElementById('topHousesCount');
+    if (countEl) countEl.textContent = 'Top ' + sorted.length + ' houses';
 }
 
 // ============================================
@@ -1108,7 +1097,7 @@ function renderCharts() {
 }
 
 // ============================================
-// RENDER VOTERS - FIXED IMAGE SIZES + MODERN GALLERY
+// RENDER VOTERS
 // ============================================
 function renderVoters() {
     var container = document.getElementById('voterContainer');
@@ -1139,7 +1128,7 @@ function renderVoters() {
     var html = '';
     if (currentView === 'gallery') {
         for (var i = 0; i < pageVoters.length; i++) {
-            html += createModernGalleryCard(pageVoters[i]);
+            html += createGalleryCard(pageVoters[i]);
         }
     } else {
         for (var i = 0; i < pageVoters.length; i++) {
@@ -1153,9 +1142,9 @@ function renderVoters() {
 }
 
 // ============================================
-// MODERN GALLERY CARD - FIXED IMAGE SIZE
+// CREATE GALLERY CARD
 // ============================================
-function createModernGalleryCard(v) {
+function createGalleryCard(v) {
     var voteStatus = v.vote_status || 'pending';
     var statusClass = voteStatus === 'will-vote' ? 'status-will-vote' : (voteStatus === 'not-vote' ? 'status-not-vote' : 'status-pending');
     var label = voteStatus === 'will-vote' ? '🗳️ Will Vote' : (voteStatus === 'not-vote' ? '❌ Not Vote' : '⏳ Pending');
@@ -1169,31 +1158,30 @@ function createModernGalleryCard(v) {
     var isMDP = party === 'MDP';
     var remarks = v.remarks || '';
     
-    // FIXED: Fixed image size - 200px x 200px max, no enlargement
-    var cardHtml = '<div class="voter-card modern" onclick="openModal(' + v.id + ')">';
+    var cardHtml = '<div class="voter-card" onclick="openModal(' + v.id + ')">';
     
-    cardHtml += '<div class="card-photo-frame" style="width:100%;aspect-ratio:1/1;overflow:hidden;background:#f0f2f5;position:relative;">';
+    cardHtml += '<div class="card-photo-frame">';
     if (photoUrl) {
-        cardHtml += '<img class="card-photo" src="' + photoUrl + '" alt="' + name + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;" />';
+        cardHtml += '<img class="card-photo" src="' + photoUrl + '" alt="' + name + '" loading="lazy" />';
     } else {
-        cardHtml += '<div class="card-photo-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px;color:#c0c8d4;background:linear-gradient(135deg,#f5f7fa,#e4e8ed);">👤</div>';
+        cardHtml += '<div class="card-photo-placeholder">👤</div>';
     }
     if (isMDP) {
-        cardHtml += '<div class="mdp-badge" style="position:absolute;top:12px;right:12px;background:linear-gradient(135deg,#f59e0b,#f97316);color:white;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:600;box-shadow:0 2px 8px rgba(245,158,11,0.4);display:flex;align-items:center;gap:4px;"><i class="fas fa-flag" style="font-size:8px;"></i> MDP</div>';
+        cardHtml += '<div class="mdp-badge"><i class="fas fa-flag"></i> MDP</div>';
     }
     cardHtml += '</div>';
     
-    cardHtml += '<div class="card-body" style="padding:12px 14px 14px;">';
-    cardHtml += '<div class="card-name" style="font-weight:700;font-size:14px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + name + '</div>';
-    cardHtml += '<div class="card-id" style="font-size:11px;color:var(--text-muted);">🆔 ' + nationalId + '</div>';
-    cardHtml += '<div class="card-house" style="font-size:12px;color:var(--text-secondary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🏠 ' + house + '</div>';
-    cardHtml += '<span class="card-status ' + statusClass + '" style="display:inline-block;font-size:10px;padding:2px 10px;border-radius:20px;font-weight:500;margin-top:6px;">' + label + '</span>';
-    cardHtml += '<div class="card-footer" style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:11px;color:var(--text-muted);padding-top:6px;border-top:1px solid var(--border-color);">';
+    cardHtml += '<div class="card-body">';
+    cardHtml += '<div class="card-name">' + name + '</div>';
+    cardHtml += '<div class="card-id">🆔 ' + nationalId + '</div>';
+    cardHtml += '<div class="card-house">🏠 ' + house + '</div>';
+    cardHtml += '<span class="card-status ' + statusClass + '">' + label + '</span>';
+    cardHtml += '<div class="card-footer">';
     cardHtml += '<span>' + (reachStatus === 'reached' ? '✅ Reached' : '⏳ Not Reached') + '</span>';
     cardHtml += '<span>' + age + ' yrs</span>';
     cardHtml += '</div>';
     if (remarks) {
-        cardHtml += '<div class="card-remarks" style="font-size:10px;color:#6b7a8f;font-style:italic;margin-top:4px;padding-top:4px;border-top:1px solid var(--border-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📝 ' + remarks.substring(0, 25) + (remarks.length > 25 ? '...' : '') + '</div>';
+        cardHtml += '<div class="card-remarks">📝 ' + remarks.substring(0, 25) + (remarks.length > 25 ? '...' : '') + '</div>';
     }
     cardHtml += '</div></div>';
     
@@ -1221,29 +1209,29 @@ function createListItem(v) {
     var html = '<div class="voter-list-item" onclick="openModal(' + v.id + ')">';
     
     if (photoUrl) {
-        html += '<img class="list-photo" src="' + photoUrl + '" alt="' + name + '" loading="lazy" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;" />';
+        html += '<img class="list-photo" src="' + photoUrl + '" alt="' + name + '" loading="lazy" />';
     } else {
-        html += '<div class="list-photo" style="display:flex;align-items:center;justify-content:center;font-size:18px;color:#c0c8d4;background:#f0f2f5;border-radius:50%;width:40px;height:40px;flex-shrink:0;">👤</div>';
+        html += '<div class="list-photo">👤</div>';
     }
     
-    html += '<div class="list-info" style="flex:1;min-width:0;">';
-    html += '<div class="list-name" style="font-weight:600;font-size:13px;">' + name;
+    html += '<div class="list-info">';
+    html += '<div class="list-name">' + name;
     if (isMDP) {
-        html += ' <span style="color:#f59e0b;font-size:10px;">🏛️ MDP</span>';
+        html += ' <span class="party-badge-mdp">🏛️ MDP</span>';
     }
     html += '</div>';
-    html += '<div class="list-details" style="font-size:11px;color:var(--text-muted);">';
+    html += '<div class="list-details">';
     html += '<span>🆔 ' + nationalId + '</span>';
     html += '<span>🏠 ' + house + '</span>';
     html += '<span>' + age + ' yrs</span>';
     html += '<span>' + sex + '</span>';
     if (remarks) {
-        html += '<span style="color:#6b7a8f;font-style:italic;">📝 ' + remarks.substring(0, 15) + (remarks.length > 15 ? '...' : '') + '</span>';
+        html += '<span class="list-remarks">📝 ' + remarks.substring(0, 15) + (remarks.length > 15 ? '...' : '') + '</span>';
     }
     html += '</div></div>';
-    html += '<div class="list-status" style="flex-shrink:0;">';
-    html += '<span class="card-status ' + statusClass + '" style="font-size:10px;padding:2px 10px;border-radius:20px;font-weight:500;">' + label + '</span>';
-    html += '<span style="font-size:10px;color:var(--text-muted);margin-left:6px;">' + (reachStatus === 'reached' ? '✅' : '⏳') + '</span>';
+    html += '<div class="list-status">';
+    html += '<span class="card-status ' + statusClass + '">' + label + '</span>';
+    html += '<span class="list-reach">' + (reachStatus === 'reached' ? '✅' : '⏳') + '</span>';
     html += '</div></div>';
     
     return html;
@@ -1299,8 +1287,9 @@ function renderHouses() {
 
     var list = document.getElementById('housesList');
     if (sorted.length === 0) {
-        list.innerHTML = '<div class="loading">No houses found</div>';
-        document.getElementById('housesTotal').textContent = '';
+        if (list) list.innerHTML = '<div class="loading">No houses found</div>';
+        var totalEl = document.getElementById('housesTotal');
+        if (totalEl) totalEl.textContent = '';
         return;
     }
 
@@ -1313,9 +1302,10 @@ function renderHouses() {
         html += '<span class="house-count">' + count + '</span>';
         html += '</div>';
     }
-    list.innerHTML = html;
+    if (list) list.innerHTML = html;
 
-    document.getElementById('housesTotal').textContent = sorted.length + ' houses';
+    var totalEl = document.getElementById('housesTotal');
+    if (totalEl) totalEl.textContent = sorted.length + ' houses';
 }
 
 // ============================================
@@ -1460,7 +1450,7 @@ function renderNewsSlider() {
     }
     
     if (latestNews.length === 0) {
-        slider.innerHTML = '<div class="loading">No news available</div>';
+        if (slider) slider.innerHTML = '<div class="loading">No news available</div>';
         return;
     }
     
@@ -1477,17 +1467,17 @@ function renderNewsSlider() {
         html += '<div class="news-source">';
         html += '<i class="fas fa-source"></i> ' + (item.source || 'System');
         if (item.new) {
-            html += ' <span style="background:#ef4444;color:white;padding:1px 8px;border-radius:12px;font-size:10px;margin-left:8px;">NEW</span>';
+            html += ' <span class="badge-new">NEW</span>';
         }
         html += '</div></div></div>';
     }
-    slider.innerHTML = html;
+    if (slider) slider.innerHTML = html;
     
     var dotsHtml = '';
     for (var i = 0; i < latestNews.length; i++) {
         dotsHtml += '<div class="slider-dot' + (i === currentSlideIndex ? ' active' : '') + '" onclick="goToSlide(' + i + ')"></div>';
     }
-    dotsContainer.innerHTML = dotsHtml;
+    if (dotsContainer) dotsContainer.innerHTML = dotsHtml;
     
     updateSlidePosition();
 }
@@ -1514,13 +1504,13 @@ function updateSlidePosition() {
         slider.style.transform = 'translateX(-' + (currentSlideIndex * 100) + '%)';
     }
     
-    for (var i = 0; i < dots.length; i++) {
-        if (i === currentSlideIndex) {
-            dots[i].classList.add('active');
+    dots.forEach(function(dot, index) {
+        if (index === currentSlideIndex) {
+            dot.classList.add('active');
         } else {
-            dots[i].classList.remove('active');
+            dot.classList.remove('active');
         }
-    }
+    });
 }
 
 function startAutoSlide() {
@@ -1554,7 +1544,7 @@ function renderNews() {
     }
     
     if (newsItems.length === 0) {
-        grid.innerHTML = '<div class="loading">No news available</div>';
+        if (grid) grid.innerHTML = '<div class="loading">No news available</div>';
         return;
     }
 
@@ -1572,16 +1562,16 @@ function renderNews() {
         html += '<div class="news-meta">';
         html += '<i class="fas fa-source"></i> ' + (item.source || 'System');
         if (item.new) {
-            html += ' <span style="background:#ef4444;color:white;padding:1px 10px;border-radius:12px;font-size:10px;margin-left:8px;">NEW</span>';
+            html += ' <span class="badge-new">NEW</span>';
         }
-        html += ' <span style="color:#6b7a8f;font-size:11px;margin-left:8px;">↗ Click to view</span>';
+        html += ' <span class="click-hint">↗ Click to view</span>';
         html += '</div></div>';
     }
-    grid.innerHTML = html;
+    if (grid) grid.innerHTML = html;
 }
 
 // ============================================
-// MODAL - CLEAN VIEW ONLY
+// MODAL - FIXED SAVE FUNCTIONALITY
 // ============================================
 function setupModal() {
     var closeBtn = document.getElementById('modalClose');
@@ -1646,12 +1636,85 @@ function openModal(id) {
     };
     document.getElementById('modalStatus').textContent = statusMap[voteStatus] || '⏳ Pending';
 
+    // Set form values
+    document.getElementById('modalPhoneInput').value = voter.phone || '';
+    document.getElementById('modalReachStatus').value = voter.reach_status || 'not-reached';
+    document.getElementById('modalVoteStatus').value = voter.vote_status || 'pending';
+    document.getElementById('modalRemarks').value = voter.remarks || '';
+
     document.getElementById('modalOverlay').classList.add('show');
 }
 
 function closeModal() {
     document.getElementById('modalOverlay').classList.remove('show');
     currentEditingId = null;
+}
+
+async function saveVoter() {
+    if (!currentEditingId) {
+        showToast('❌ No voter selected', 'error');
+        return;
+    }
+
+    // Get values from form
+    var phone = document.getElementById('modalPhoneInput').value.trim();
+    var reachStatus = document.getElementById('modalReachStatus').value;
+    var voteStatus = document.getElementById('modalVoteStatus').value;
+    var remarks = document.getElementById('modalRemarks').value.trim() || null;
+
+    var updates = {
+        phone: phone,
+        reach_status: reachStatus,
+        vote_status: voteStatus,
+        remarks: remarks
+    };
+
+    console.log('🔄 Saving voter:', currentEditingId, updates);
+
+    try {
+        var tableName = (window.APP_CONFIG && window.APP_CONFIG.tableName) || 'full_import';
+        var { error } = await window.supabaseClient
+            .from(tableName)
+            .update(updates)
+            .eq('id', currentEditingId);
+
+        if (error) {
+            console.error('❌ Supabase error:', error);
+            throw error;
+        }
+
+        // Update local data
+        for (var i = 0; i < allVoters.length; i++) {
+            if (allVoters[i].id === currentEditingId) {
+                for (var key in updates) {
+                    if (updates.hasOwnProperty(key)) {
+                        allVoters[i][key] = updates[key];
+                    }
+                }
+                break;
+            }
+        }
+
+        // Update filtered data
+        for (var i = 0; i < filteredVoters.length; i++) {
+            if (filteredVoters[i].id === currentEditingId) {
+                for (var key in updates) {
+                    if (updates.hasOwnProperty(key)) {
+                        filteredVoters[i][key] = updates[key];
+                    }
+                }
+                break;
+            }
+        }
+
+        closeModal();
+        refreshAll();
+        showToast('✅ Voter updated successfully!', 'success');
+
+    } catch (err) {
+        console.error('❌ Error saving voter:', err);
+        showToast('❌ Error: ' + err.message, 'error');
+    }
 }
 
 // ============================================
@@ -1709,6 +1772,9 @@ function refreshAll() {
     setupClickableCards();
 }
 
+// ============================================
+// EXPOSE GLOBAL FUNCTIONS
+// ============================================
 window.refreshData = refreshData;
 window.openModal = openModal;
 window.navigateTo = navigateTo;
@@ -1719,6 +1785,7 @@ window.exportData = exportData;
 window.deleteVoterSettings = deleteVoterSettings;
 window.clearAllData = clearAllData;
 window.handleNewsClick = handleNewsClick;
+window.saveVoter = saveVoter;
 
 // ============================================
 // TOAST

@@ -1,5 +1,5 @@
 // app.js - Main application logic with Supabase data + Settings
-// FIXED: Removed mobile updates, modern UI with framed photos, MDP filter
+// FIXED: MDP filter, fixed image sizes, mobile nav auto-hide
 
 // ============================================
 // CHECK CONFIG FIRST
@@ -35,6 +35,7 @@ let slideInterval = null;
 let settingsAuthenticated = false;
 let totalRecords = 0;
 let lastAppliedFilter = 'all';
+let isMobileMenuOpen = false;
 
 // ============================================
 // DOM REFS
@@ -549,6 +550,7 @@ async function init() {
     setupSettings();
     setupClickableCards();
     setupMDPFilter();
+    setupMobileNav();
     
     renderDashboard();
     renderVoters();
@@ -561,10 +563,49 @@ async function init() {
 }
 
 // ============================================
+// SETUP MOBILE NAV - AUTO HIDE
+// ============================================
+function setupMobileNav() {
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', function(e) {
+        if (window.innerWidth <= 768) {
+            var sidebar = document.getElementById('sidebar');
+            var toggle = document.getElementById('menuToggle');
+            if (sidebar && !sidebar.contains(e.target) && !toggle.contains(e.target)) {
+                sidebar.classList.remove('open');
+                isMobileMenuOpen = false;
+            }
+        }
+    });
+    
+    // Close mobile menu when window resizes to desktop
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 768) {
+            var sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.remove('open');
+                isMobileMenuOpen = false;
+            }
+        }
+    });
+    
+    // Toggle menu on button click
+    if (menuToggle) {
+        menuToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('open');
+                isMobileMenuOpen = sidebar.classList.contains('open');
+            }
+        });
+    }
+}
+
+// ============================================
 // SETUP MDP FILTER
 // ============================================
 function setupMDPFilter() {
-    // Add MDP filter button if not exists
     var typeSelector = document.querySelector('.voter-type-selector');
     if (typeSelector) {
         var existingMDP = typeSelector.querySelector('.type-btn[data-type="mdp"]');
@@ -622,7 +663,10 @@ function setupNavigation() {
             item.addEventListener('click', function() {
                 var section = this.dataset.section;
                 navigateTo(section);
-                if (sidebar) sidebar.classList.remove('open');
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('open');
+                    isMobileMenuOpen = false;
+                }
             });
         })(i);
     }
@@ -1064,7 +1108,7 @@ function renderCharts() {
 }
 
 // ============================================
-// RENDER VOTERS - MODERN GALLERY WITH FRAMED PHOTOS
+// RENDER VOTERS - FIXED IMAGE SIZES + MODERN GALLERY
 // ============================================
 function renderVoters() {
     var container = document.getElementById('voterContainer');
@@ -1073,8 +1117,8 @@ function renderVoters() {
     if (currentView === 'gallery') {
         container.className = 'gallery';
         container.style.display = 'grid';
-        container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(220px, 1fr))';
-        container.style.gap = '20px';
+        container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(200px, 1fr))';
+        container.style.gap = '16px';
     } else {
         container.className = 'list';
         container.style.display = 'flex';
@@ -1109,7 +1153,7 @@ function renderVoters() {
 }
 
 // ============================================
-// MODERN GALLERY CARD WITH FRAMED PHOTO
+// MODERN GALLERY CARD - FIXED IMAGE SIZE
 // ============================================
 function createModernGalleryCard(v) {
     var voteStatus = v.vote_status || 'pending';
@@ -1125,32 +1169,31 @@ function createModernGalleryCard(v) {
     var isMDP = party === 'MDP';
     var remarks = v.remarks || '';
     
+    // FIXED: Fixed image size - 200px x 200px max, no enlargement
     var cardHtml = '<div class="voter-card modern" onclick="openModal(' + v.id + ')">';
     
-    // Framed photo with shadow
-    cardHtml += '<div class="card-photo-frame">';
+    cardHtml += '<div class="card-photo-frame" style="width:100%;aspect-ratio:1/1;overflow:hidden;background:#f0f2f5;position:relative;">';
     if (photoUrl) {
-        cardHtml += '<img class="card-photo" src="' + photoUrl + '" alt="' + name + '" loading="lazy" />';
+        cardHtml += '<img class="card-photo" src="' + photoUrl + '" alt="' + name + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;" />';
     } else {
-        cardHtml += '<div class="card-photo-placeholder">👤</div>';
+        cardHtml += '<div class="card-photo-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px;color:#c0c8d4;background:linear-gradient(135deg,#f5f7fa,#e4e8ed);">👤</div>';
     }
-    // MDP badge overlay
     if (isMDP) {
-        cardHtml += '<div class="mdp-badge"><i class="fas fa-flag"></i> MDP</div>';
+        cardHtml += '<div class="mdp-badge" style="position:absolute;top:12px;right:12px;background:linear-gradient(135deg,#f59e0b,#f97316);color:white;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:600;box-shadow:0 2px 8px rgba(245,158,11,0.4);display:flex;align-items:center;gap:4px;"><i class="fas fa-flag" style="font-size:8px;"></i> MDP</div>';
     }
     cardHtml += '</div>';
     
-    cardHtml += '<div class="card-body">';
-    cardHtml += '<div class="card-name">' + name + '</div>';
-    cardHtml += '<div class="card-id">🆔 ' + nationalId + '</div>';
-    cardHtml += '<div class="card-house">🏠 ' + house + '</div>';
-    cardHtml += '<span class="card-status ' + statusClass + '">' + label + '</span>';
-    cardHtml += '<div class="card-footer">';
+    cardHtml += '<div class="card-body" style="padding:12px 14px 14px;">';
+    cardHtml += '<div class="card-name" style="font-weight:700;font-size:14px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + name + '</div>';
+    cardHtml += '<div class="card-id" style="font-size:11px;color:var(--text-muted);">🆔 ' + nationalId + '</div>';
+    cardHtml += '<div class="card-house" style="font-size:12px;color:var(--text-secondary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🏠 ' + house + '</div>';
+    cardHtml += '<span class="card-status ' + statusClass + '" style="display:inline-block;font-size:10px;padding:2px 10px;border-radius:20px;font-weight:500;margin-top:6px;">' + label + '</span>';
+    cardHtml += '<div class="card-footer" style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:11px;color:var(--text-muted);padding-top:6px;border-top:1px solid var(--border-color);">';
     cardHtml += '<span>' + (reachStatus === 'reached' ? '✅ Reached' : '⏳ Not Reached') + '</span>';
     cardHtml += '<span>' + age + ' yrs</span>';
     cardHtml += '</div>';
     if (remarks) {
-        cardHtml += '<div class="card-remarks">📝 ' + remarks.substring(0, 25) + (remarks.length > 25 ? '...' : '') + '</div>';
+        cardHtml += '<div class="card-remarks" style="font-size:10px;color:#6b7a8f;font-style:italic;margin-top:4px;padding-top:4px;border-top:1px solid var(--border-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📝 ' + remarks.substring(0, 25) + (remarks.length > 25 ? '...' : '') + '</div>';
     }
     cardHtml += '</div></div>';
     
@@ -1178,29 +1221,29 @@ function createListItem(v) {
     var html = '<div class="voter-list-item" onclick="openModal(' + v.id + ')">';
     
     if (photoUrl) {
-        html += '<img class="list-photo" src="' + photoUrl + '" alt="' + name + '" loading="lazy" />';
+        html += '<img class="list-photo" src="' + photoUrl + '" alt="' + name + '" loading="lazy" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;" />';
     } else {
-        html += '<div class="list-photo" style="display:flex;align-items:center;justify-content:center;font-size:20px;color:#c0c8d4;background:#f0f2f5;border-radius:50%;width:48px;height:48px;flex-shrink:0;">👤</div>';
+        html += '<div class="list-photo" style="display:flex;align-items:center;justify-content:center;font-size:18px;color:#c0c8d4;background:#f0f2f5;border-radius:50%;width:40px;height:40px;flex-shrink:0;">👤</div>';
     }
     
-    html += '<div class="list-info">';
-    html += '<div class="list-name">' + name;
+    html += '<div class="list-info" style="flex:1;min-width:0;">';
+    html += '<div class="list-name" style="font-weight:600;font-size:13px;">' + name;
     if (isMDP) {
-        html += ' <span style="color:#f59e0b;font-size:11px;">🏛️ MDP</span>';
+        html += ' <span style="color:#f59e0b;font-size:10px;">🏛️ MDP</span>';
     }
     html += '</div>';
-    html += '<div class="list-details">';
+    html += '<div class="list-details" style="font-size:11px;color:var(--text-muted);">';
     html += '<span>🆔 ' + nationalId + '</span>';
     html += '<span>🏠 ' + house + '</span>';
     html += '<span>' + age + ' yrs</span>';
     html += '<span>' + sex + '</span>';
     if (remarks) {
-        html += '<span style="color:#6b7a8f;font-style:italic;">📝 ' + remarks.substring(0, 20) + (remarks.length > 20 ? '...' : '') + '</span>';
+        html += '<span style="color:#6b7a8f;font-style:italic;">📝 ' + remarks.substring(0, 15) + (remarks.length > 15 ? '...' : '') + '</span>';
     }
     html += '</div></div>';
-    html += '<div class="list-status">';
-    html += '<span class="card-status ' + statusClass + '">' + label + '</span>';
-    html += '<span style="font-size:11px;color:var(--text-muted);margin-left:8px;">' + (reachStatus === 'reached' ? '✅' : '⏳') + '</span>';
+    html += '<div class="list-status" style="flex-shrink:0;">';
+    html += '<span class="card-status ' + statusClass + '" style="font-size:10px;padding:2px 10px;border-radius:20px;font-weight:500;">' + label + '</span>';
+    html += '<span style="font-size:10px;color:var(--text-muted);margin-left:6px;">' + (reachStatus === 'reached' ? '✅' : '⏳') + '</span>';
     html += '</div></div>';
     
     return html;
@@ -1538,7 +1581,7 @@ function renderNews() {
 }
 
 // ============================================
-// MODAL - CLEAN VIEW ONLY (NO MOBILE UPDATES)
+// MODAL - CLEAN VIEW ONLY
 // ============================================
 function setupModal() {
     var closeBtn = document.getElementById('modalClose');

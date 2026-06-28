@@ -53,9 +53,7 @@
             align-items: center;
         }
 
-        /* ============================================
-           HEADER
-           ============================================ */
+        /* HEADER */
         .search-header {
             width: 100%;
             max-width: 720px;
@@ -104,9 +102,7 @@
             color: var(--text-primary);
         }
 
-        /* ============================================
-           SEARCH BAR
-           ============================================ */
+        /* SEARCH BAR */
         .search-wrapper {
             width: 100%;
             max-width: 720px;
@@ -172,9 +168,7 @@
             color: var(--text-primary);
         }
 
-        /* ============================================
-           SEARCH STATS
-           ============================================ */
+        /* SEARCH STATS */
         .search-stats {
             width: 100%;
             max-width: 720px;
@@ -205,9 +199,7 @@
             font-family: inherit;
         }
 
-        /* ============================================
-           RESULTS
-           ============================================ */
+        /* RESULTS */
         .results-container {
             width: 100%;
             max-width: 720px;
@@ -277,7 +269,7 @@
             color: var(--text-secondary);
             display: flex;
             flex-wrap: wrap;
-            gap: 4px 16px;
+            gap: 4px 12px;
             margin-top: 2px;
         }
 
@@ -325,9 +317,7 @@
             transform: scale(0.95);
         }
 
-        /* ============================================
-           EMPTY STATE
-           ============================================ */
+        /* EMPTY STATE */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -356,9 +346,7 @@
             color: var(--text-secondary);
         }
 
-        /* ============================================
-           LOADING
-           ============================================ */
+        /* LOADING */
         .loading-spinner {
             text-align: center;
             padding: 40px 20px;
@@ -376,9 +364,7 @@
             to { transform: rotate(360deg); }
         }
 
-        /* ============================================
-           TOAST
-           ============================================ */
+        /* TOAST */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -412,9 +398,7 @@
             }
         }
 
-        /* ============================================
-           RESPONSIVE
-           ============================================ */
+        /* RESPONSIVE */
         @media (max-width: 600px) {
             body {
                 padding: 12px;
@@ -468,7 +452,7 @@
 
             .result-item .details {
                 font-size: 12px;
-                gap: 2px 10px;
+                gap: 2px 8px;
             }
 
             .result-item .details .id-badge {
@@ -496,9 +480,7 @@
             }
         }
 
-        /* ============================================
-           DARK MODE
-           ============================================ */
+        /* DARK MODE */
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg-primary: #0F0A1A;
@@ -559,9 +541,7 @@
             .toast.error { border-left-color: #EF4444; }
         }
 
-        /* ============================================
-           SCROLLBAR
-           ============================================ */
+        /* SCROLLBAR */
         ::-webkit-scrollbar {
             width: 4px;
         }
@@ -571,6 +551,15 @@
         ::-webkit-scrollbar-thumb {
             background: var(--primary);
             border-radius: 2px;
+        }
+
+        /* Highlight match */
+        .highlight {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            padding: 0 2px;
+            border-radius: 2px;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -616,7 +605,7 @@
 
     <script>
         // ============================================
-        // PROFESSIONAL SEARCH PAGE
+        // PROFESSIONAL SEARCH PAGE - FIXED SEARCH
         // ============================================
 
         // CONFIG
@@ -631,6 +620,7 @@
         // STATE
         let allVoters = [];
         let searchTimeout = null;
+        let currentQuery = '';
 
         // SUPABASE
         let supabaseClient = null;
@@ -682,26 +672,27 @@
                     useSampleData();
                 }
 
-                renderResults(allVoters);
+                // Show all voters initially
+                renderResults(allVoters, '');
 
             } catch (e) {
                 console.error('Load error:', e);
                 useSampleData();
-                renderResults(allVoters);
+                renderResults(allVoters, '');
             }
         }
 
         // SAMPLE DATA
         function useSampleData() {
             const houses = ['H. Orchid', 'H. Rose', 'H. Tulip', 'H. Lotus', 'H. Lily', 'H. Clover', 'H. Daisy', 'H. Palm', 'H. Sunset', 'H. Coral'];
-            const names = ['Ahmed Rasheed', 'Fathimath Shazna', 'Mohamed Aslam', 'Aishath Rasha', 'Abdulla Saeed', 'Mariyam Shakeela'];
+            const names = ['Ahmed Rasheed', 'Fathimath Shazna', 'Mohamed Aslam', 'Aishath Rasha', 'Abdulla Saeed', 'Mariyam Shakeela', 'Nashid Waheed', 'Hussain Zahir'];
 
             allVoters = [];
 
             for (let i = 0; i < 3351; i++) {
                 allVoters.push({
                     id: i + 1,
-                    name: names[i % names.length] + (i > 5 ? ' ' + (i + 1) : ''),
+                    name: names[i % names.length] + (i > 7 ? ' ' + (i + 1) : ''),
                     national_id: 'A' + String(100000 + i).padStart(6, '0'),
                     house: houses[i % houses.length],
                     phone: '7' + String(700000 + i).padStart(6, '0'),
@@ -717,9 +708,9 @@
             console.log('Sample data: ' + allVoters.length + ' voters');
         }
 
-        // SEARCH
+        // SEARCH - CASE INSENSITIVE WITH PARTIAL MATCH
         function performSearch() {
-            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            const query = document.getElementById('searchInput').value.trim();
             const clearBtn = document.getElementById('clearBtn');
 
             if (query.length > 0) {
@@ -728,26 +719,52 @@
                 clearBtn.classList.remove('visible');
             }
 
+            currentQuery = query;
+
             clearTimeout(searchTimeout);
 
             searchTimeout = setTimeout(() => {
                 if (!query) {
-                    renderResults(allVoters);
+                    renderResults(allVoters, '');
                     return;
                 }
 
-                const results = allVoters.filter(v =>
-                    (v.name || '').toLowerCase().includes(query) ||
-                    (v.national_id || '').toLowerCase().includes(query) ||
-                    (v.house || '').toLowerCase().includes(query)
-                );
+                // Case insensitive search - match ANY part of the string
+                const lowerQuery = query.toLowerCase();
+                const results = allVoters.filter(v => {
+                    const name = (v.name || '').toLowerCase();
+                    const id = (v.national_id || '').toLowerCase();
+                    const house = (v.house || '').toLowerCase();
+                    const phone = (v.phone || '').toLowerCase();
+                    
+                    // Check if query matches any field (partial match)
+                    return name.includes(lowerQuery) || 
+                           id.includes(lowerQuery) || 
+                           house.includes(lowerQuery) ||
+                           phone.includes(lowerQuery);
+                });
 
-                renderResults(results);
-            }, 300);
+                renderResults(results, query);
+            }, 200);
+        }
+
+        // HIGHLIGHT MATCH
+        function highlightText(text, query) {
+            if (!query || !text) return text || '';
+            const lowerText = text.toLowerCase();
+            const lowerQuery = query.toLowerCase();
+            const index = lowerText.indexOf(lowerQuery);
+            if (index === -1) return text;
+            
+            const before = text.substring(0, index);
+            const match = text.substring(index, index + query.length);
+            const after = text.substring(index + query.length);
+            
+            return before + '<span class="highlight">' + match + '</span>' + after;
         }
 
         // RENDER RESULTS
-        function renderResults(voters) {
+        function renderResults(voters, query) {
             const container = document.getElementById('resultsContainer');
             const countEl = document.getElementById('resultCount');
 
@@ -770,17 +787,23 @@
                     `<img src="${v.photo_url}" onerror="this.parentElement.textContent='${initial}'" />` : 
                     initial;
 
+                // Highlight matching parts
+                const displayName = query ? highlightText(v.name || 'Unknown', query) : (v.name || 'Unknown');
+                const displayId = query ? highlightText(v.national_id || 'N/A', query) : (v.national_id || 'N/A');
+                const displayHouse = query ? highlightText(v.house || 'N/A', query) : (v.house || 'N/A');
+                const displayPhone = query ? highlightText(v.phone || 'N/A', query) : (v.phone || 'N/A');
+
                 return `
                     <div class="result-item">
                         <div class="avatar">${photo}</div>
                         <div class="info">
-                            <div class="name">${v.name}</div>
+                            <div class="name">${displayName}</div>
                             <div class="details">
-                                <span><i class="fas fa-id-card"></i> ${v.national_id || 'N/A'}</span>
+                                <span><i class="fas fa-id-card"></i> ${displayId}</span>
                                 <span class="sep">·</span>
-                                <span><i class="fas fa-phone"></i> ${v.phone || 'N/A'}</span>
+                                <span><i class="fas fa-phone"></i> ${displayPhone}</span>
                                 <span class="sep">·</span>
-                                <span><i class="fas fa-home"></i> ${v.house || 'N/A'}</span>
+                                <span><i class="fas fa-home"></i> ${displayHouse}</span>
                                 <span class="id-badge">ID ${v.id}</span>
                             </div>
                         </div>
@@ -830,7 +853,8 @@
         function clearSearch() {
             document.getElementById('searchInput').value = '';
             document.getElementById('clearBtn').classList.remove('visible');
-            renderResults(allVoters);
+            currentQuery = '';
+            renderResults(allVoters, '');
             document.getElementById('searchInput').focus();
         }
 

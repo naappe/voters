@@ -1,12 +1,22 @@
 /* ============================================
-   ROOT VARIABLES
+   ROOT VARIABLES - PURPLE THEME
    ============================================ */
 :root {
-    --mdp-color: #F5A623;
-    --mdp-dark: #E09515;
+    --primary: #7C3AED;
+    --primary-dark: #6D28D9;
+    --primary-light: #EDE9FE;
+    --primary-gradient: linear-gradient(135deg, #7C3AED, #6D28D9);
+
+    --mdp-color: #7C3AED;
+    --mdp-dark: #6D28D9;
+    --mdp-light: #EDE9FE;
+    
     --pnc-color: #1A56DB;
     --pnc-dark: #1A3A8A;
+    --pnc-light: #EBF0FA;
+    
     --other-color: #6B7280;
+    --other-light: #F3F4F6;
 
     --success: #22C55E;
     --success-bg: #DCFCE7;
@@ -24,13 +34,9 @@
     --info-bg: #DBEAFE;
     --info-text: #1E40AF;
 
-    --undecided: #8B5CF6;
-    --undecided-bg: #EDE9FE;
-    --undecided-text: #5B21B6;
-
-    --bg-primary: #F1F5F9;
+    --bg-primary: #F5F3FF;
     --bg-card: #FFFFFF;
-    --bg-sidebar: #111827;
+    --bg-sidebar: #1E1B4B;
     --bg-input: #F8FAFC;
 
     --text-primary: #1E293B;
@@ -39,8 +45,8 @@
 
     --border: #E2E8F0;
     --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+    --shadow-md: 0 4px 12px rgba(124, 58, 237, 0.15);
+    --shadow-lg: 0 8px 24px rgba(124, 58, 237, 0.2);
 
     --radius: 12px;
     --radius-lg: 16px;
@@ -79,7 +85,7 @@ body {
     background: var(--bg-primary);
 }
 ::-webkit-scrollbar-thumb {
-    background: var(--text-muted);
+    background: var(--primary);
     border-radius: 3px;
 }
 
@@ -111,7 +117,7 @@ body {
 }
 
 .sidebar-brand i {
-    color: var(--mdp-color);
+    color: var(--primary);
     font-size: 22px;
 }
 
@@ -152,8 +158,8 @@ body {
 }
 
 .nav-item.active {
-    background: rgba(245, 166, 35, 0.12);
-    color: var(--mdp-color);
+    background: rgba(124, 58, 237, 0.15);
+    color: var(--primary);
 }
 
 .nav-item i {
@@ -367,6 +373,10 @@ body {
     transform: translateY(-3px);
 }
 
+.stat-card:active {
+    transform: scale(0.97);
+}
+
 .stat-card .stat-number {
     font-size: 28px;
     font-weight: 700;
@@ -392,14 +402,14 @@ body {
 .stat-card.color-success::before { background: var(--success); }
 .stat-card.color-success .stat-number { color: var(--success); }
 
-.stat-card.color-mdp::before { background: var(--mdp-color); }
-.stat-card.color-mdp .stat-number { color: var(--mdp-color); }
-
-.stat-card.color-warning::before { background: var(--warning); }
-.stat-card.color-warning .stat-number { color: var(--warning); }
+.stat-card.color-primary::before { background: var(--primary); }
+.stat-card.color-primary .stat-number { color: var(--primary); }
 
 .stat-card.color-danger::before { background: var(--danger); }
 .stat-card.color-danger .stat-number { color: var(--danger); }
+
+.stat-card.color-warning::before { background: var(--warning); }
+.stat-card.color-warning .stat-number { color: var(--warning); }
 
 /* QUICK ACTIONS */
 .quick-actions {
@@ -430,19 +440,23 @@ body {
 }
 
 .quick-action-btn:hover {
-    border-color: var(--mdp-color);
+    border-color: var(--primary);
     box-shadow: var(--shadow-md);
+}
+
+.quick-action-btn:active {
+    transform: scale(0.97);
 }
 
 .quick-action-btn i {
     font-size: 20px;
-    color: var(--mdp-color);
+    color: var(--primary);
 }
 
 .quick-action-btn.primary {
-    background: linear-gradient(135deg, var(--mdp-color), var(--mdp-dark));
+    background: var(--primary-gradient);
     color: white;
-    border-color: var(--mdp-color);
+    border-color: var(--primary);
 }
 
 .quick-action-btn.primary i {
@@ -481,12 +495,12 @@ body {
 }
 
 .card-header h3 i {
-    color: var(--mdp-color);
+    color: var(--primary);
 }
 
 .card-header .view-all {
     font-size: 13px;
-    color: var(--mdp-color);
+    color: var(--primary);
     cursor: pointer;
     font-weight: 500;
 }
@@ -580,13 +594,13 @@ body {
 }
 
 .filter-tab:hover {
-    border-color: var(--mdp-color);
+    border-color: var(--primary);
     color: var(--text-primary);
 }
 
 .filter-tab.active {
-    border-color: var(--mdp-color);
-    background: var(--mdp-color);
+    border-color: var(--primary);
+    background: var(--primary);
     color: white;
 }
 
@@ -641,7 +655,7 @@ body {
 }
 
 .search-group input:focus {
-    border-color: var(--mdp-color);
+    border-color: var(--primary);
 }
 
 .advanced-filters select {
@@ -656,7 +670,7 @@ body {
 }
 
 .advanced-filters select:focus {
-    border-color: var(--mdp-color);
+    border-color: var(--primary);
 }
 
 .view-toggle {
@@ -702,7 +716,7 @@ body {
 }
 
 .voter-canvass-card:hover {
-    border-color: var(--mdp-color);
+    border-color: var(--primary);
     box-shadow: var(--shadow-md);
 }
 
@@ -769,9 +783,8 @@ body {
 .badge-warning { background: var(--warning-bg); color: var(--warning-text); }
 .badge-danger { background: var(--danger-bg); color: var(--danger-text); }
 .badge-info { background: var(--info-bg); color: var(--info-text); }
-.badge-undecided { background: var(--undecided-bg); color: var(--undecided-text); }
-.badge-mdp { background: rgba(245, 166, 35, 0.15); color: var(--mdp-dark); border: 1px solid var(--mdp-color); }
-.badge-pnc { background: rgba(26, 86, 219, 0.15); color: var(--pnc-dark); border: 1px solid var(--pnc-color); }
+.badge-mdp { background: var(--mdp-light); color: var(--mdp-dark); border: 1px solid var(--primary); }
+.badge-pnc { background: var(--pnc-light); color: var(--pnc-dark); border: 1px solid var(--pnc-color); }
 
 /* QUICK STATUS BUTTONS */
 .voter-canvass-card .quick-status-btns {
@@ -811,15 +824,6 @@ body {
 }
 .voter-canvass-card .quick-status-btns button.btn-vote.active {
     background: var(--success);
-    color: white;
-}
-
-.voter-canvass-card .quick-status-btns button.btn-undecided {
-    border-color: var(--undecided);
-    color: var(--undecided-text);
-}
-.voter-canvass-card .quick-status-btns button.btn-undecided.active {
-    background: var(--undecided);
     color: white;
 }
 
@@ -1039,15 +1043,6 @@ body {
     color: white;
 }
 
-.modal-body .status-actions button.btn-undecided {
-    border-color: var(--undecided);
-    color: var(--undecided-text);
-}
-.modal-body .status-actions button.btn-undecided.active {
-    background: var(--undecided);
-    color: white;
-}
-
 .modal-body .status-actions button.btn-notvote {
     border-color: var(--danger);
     color: var(--danger-text);
@@ -1066,6 +1061,15 @@ body {
     color: white;
 }
 
+.modal-body .status-actions button.btn-notreached {
+    border-color: var(--text-muted);
+    color: var(--text-secondary);
+}
+.modal-body .status-actions button.btn-notreached.active {
+    background: var(--text-muted);
+    color: white;
+}
+
 /* SETTINGS */
 .settings-lock {
     display: flex;
@@ -1079,7 +1083,18 @@ body {
 
 .settings-lock .lock-icon {
     font-size: 48px;
-    color: var(--mdp-color);
+    color: var(--primary);
+    margin-bottom: 16px;
+}
+
+.settings-lock h3 {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.settings-lock p {
+    color: var(--text-secondary);
+    font-size: 13px;
     margin-bottom: 16px;
 }
 
@@ -1097,7 +1112,7 @@ body {
 }
 
 .settings-lock input:focus {
-    border-color: var(--mdp-color);
+    border-color: var(--primary);
 }
 
 .settings-lock button {
@@ -1105,7 +1120,7 @@ body {
     padding: 0 32px;
     border: none;
     border-radius: var(--radius);
-    background: linear-gradient(135deg, var(--mdp-color), var(--mdp-dark));
+    background: var(--primary-gradient);
     color: white;
     font-weight: 600;
     font-size: 14px;
@@ -1178,13 +1193,13 @@ body {
 }
 
 .settings-actions button:hover {
-    border-color: var(--mdp-color);
+    border-color: var(--primary);
 }
 
 .settings-actions button.primary {
-    background: var(--mdp-color);
+    background: var(--primary-gradient);
     color: white;
-    border-color: var(--mdp-color);
+    border-color: var(--primary);
 }
 
 .settings-actions button.danger {
@@ -1223,7 +1238,7 @@ body {
 }
 
 .settings-record .record-actions .btn-edit {
-    background: var(--info);
+    background: var(--primary);
     color: white;
 }
 
@@ -1252,13 +1267,13 @@ body {
     box-shadow: var(--shadow-lg);
     text-align: center;
     animation: toastIn 0.3s ease;
-    border-left: 4px solid var(--info);
+    border-left: 4px solid var(--primary);
 }
 
 .toast.success { border-left-color: var(--success); }
 .toast.error { border-left-color: var(--danger); }
 .toast.warning { border-left-color: var(--warning); }
-.toast.info { border-left-color: var(--info); }
+.toast.info { border-left-color: var(--primary); }
 
 @keyframes toastIn {
     from {
@@ -1306,7 +1321,7 @@ body {
 }
 
 .bottom-nav .nav-item.active {
-    color: var(--mdp-color);
+    color: var(--primary);
 }
 
 .bottom-nav .nav-item .badge {
@@ -1486,16 +1501,16 @@ body {
 /* DARK MODE */
 @media (prefers-color-scheme: dark) {
     :root {
-        --bg-primary: #0F1724;
-        --bg-card: #1A2332;
-        --bg-input: #1E293B;
+        --bg-primary: #0F0A1A;
+        --bg-card: #1A1430;
+        --bg-input: #1E1B4B;
         --text-primary: #F1F5F9;
         --text-secondary: #94A3B8;
         --text-muted: #64748B;
         --border: #2D3A4F;
         --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-        --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-        --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+        --shadow-md: 0 4px 12px rgba(124, 58, 237, 0.2);
+        --shadow-lg: 0 8px 24px rgba(124, 58, 237, 0.25);
     }
 
     .top-header {
@@ -1521,7 +1536,7 @@ body {
     }
 
     .filter-tab.active {
-        background: var(--mdp-color);
+        background: var(--primary);
         color: white;
     }
 
@@ -1572,9 +1587,8 @@ body {
     .badge-warning { background: rgba(245, 158, 11, 0.2); color: #FBBF24; }
     .badge-danger { background: rgba(239, 68, 68, 0.2); color: #F87171; }
     .badge-info { background: rgba(59, 130, 246, 0.2); color: #60A5FA; }
-    .badge-undecided { background: rgba(139, 92, 246, 0.2); color: #A78BFA; }
-    .badge-mdp { background: rgba(245, 166, 35, 0.15); color: var(--mdp-color); }
-    .badge-pnc { background: rgba(26, 86, 219, 0.15); color: var(--pnc-color); }
+    .badge-mdp { background: rgba(124, 58, 237, 0.2); color: #A78BFA; }
+    .badge-pnc { background: rgba(26, 86, 219, 0.2); color: #60A5FA; }
 
     .header-actions .notification-dot::after {
         border-color: var(--bg-primary);
@@ -1611,12 +1625,12 @@ body {
     }
 
     .settings-lock input:focus {
-        border-color: var(--mdp-color);
+        border-color: var(--primary);
     }
 
     .toast {
         background: var(--bg-card);
         color: var(--text-primary);
-        border-left-color: var(--info);
+        border-left-color: var(--primary);
     }
 }

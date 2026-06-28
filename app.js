@@ -1,6 +1,6 @@
 // ============================================
 // VILLIMALE DHAIRA - CANVASSING SYSTEM
-// FIXED - Export removed from main UI, filters improved
+// FIXED - Click handlers working, no emojis in labels
 // ============================================
 
 // STATE
@@ -61,12 +61,12 @@ function useSampleData() {
     const names = ['Ahmed Rasheed', 'Fathimath Shazna', 'Mohamed Aslam', 'Aishath Rasha', 'Abdulla Saeed', 'Mariyam Shakeela'];
     const parties = ['MDP', 'PNC', 'MDP', 'Other', 'MDP', 'PNC', 'MDP', 'Other'];
 
-    // Clear existing data to avoid duplicates
     allVoters = [];
 
+    const validStatuses = ['will-vote', 'not-vote', 'pending'];
+    const reaches = ['reached', 'not-reached'];
+
     for (let i = 0; i < 3351; i++) {
-        const statuses = ['will-vote', 'pending', 'undecided', 'will-vote', 'pending', 'not-vote'];
-        const reaches = ['reached', 'not-reached', 'reached', 'not-reached', 'reached'];
         allVoters.push({
             id: i + 1,
             name: names[i % names.length] + (i > 5 ? ' ' + (i + 1) : ''),
@@ -76,7 +76,7 @@ function useSampleData() {
             sex: i % 2 === 0 ? 'M' : 'F',
             age: 18 + (i % 50),
             party: parties[i % parties.length],
-            vote_status: statuses[i % statuses.length],
+            vote_status: validStatuses[i % validStatuses.length],
             reach_status: reaches[i % reaches.length],
             remarks: i % 4 === 0 ? 'Met with family' : null,
             photo_url: ''
@@ -132,12 +132,11 @@ async function loadData() {
 
 // STATUS HELPERS
 const STATUS = {
-    'will-vote': { label: '🗳️ Will Vote', class: 'badge-success' },
-    'undecided': { label: '🤔 Undecided', class: 'badge-undecided' },
-    'not-vote': { label: '❌ Not Vote', class: 'badge-danger' },
-    'pending': { label: '⏳ Pending', class: 'badge-warning' },
-    'reached': { label: '✅ Reached', class: 'badge-info' },
-    'not-reached': { label: '🚪 Not Reached', class: 'badge-warning' }
+    'will-vote': { label: 'Will Vote', class: 'badge-success' },
+    'not-vote': { label: 'Not Vote', class: 'badge-danger' },
+    'pending': { label: 'Pending', class: 'badge-warning' },
+    'reached': { label: 'Reached', class: 'badge-info' },
+    'not-reached': { label: 'Not Reached', class: 'badge-warning' }
 };
 
 function getStatus(v) {
@@ -168,30 +167,29 @@ function renderAll() {
     populateHouseFilter();
 }
 
-// DASHBOARD
+// DASHBOARD - No emojis, click handlers working
 function renderDashboard() {
     const total = allVoters.length;
     const reached = allVoters.filter(v => v.reach_status === 'reached').length;
     const willVote = allVoters.filter(v => v.vote_status === 'will-vote').length;
-    const undecided = allVoters.filter(v => v.vote_status === 'undecided').length;
     const notVote = allVoters.filter(v => v.vote_status === 'not-vote').length;
+    const pending = allVoters.filter(v => v.vote_status === 'pending' || !v.vote_status).length;
     const notReached = allVoters.filter(v => v.reach_status === 'not-reached' || !v.reach_status).length;
 
     safeText('statTotal', total.toLocaleString());
     safeText('statReached', reached.toLocaleString());
     safeText('statWillVote', willVote.toLocaleString());
-    safeText('statUndecided', undecided.toLocaleString());
     safeText('statNotVote', notVote.toLocaleString());
+    safeText('statPending', pending.toLocaleString());
     safeText('statNotReached', notReached.toLocaleString());
 
     const pct = (v) => total ? Math.round((v / total) * 100) : 0;
     safeText('statReachedPercent', pct(reached) + '%');
     safeText('statWillVotePercent', pct(willVote) + '%');
-    safeText('statUndecidedPercent', pct(undecided) + '%');
     safeText('statNotVotePercent', pct(notVote) + '%');
+    safeText('statPendingPercent', pct(pending) + '%');
     safeText('statNotReachedPercent', pct(notReached) + '%');
 
-    // Recent Activity with Photos
     const container = safeEl('recentActivity');
     if (!container) return;
 
@@ -212,7 +210,7 @@ function renderDashboard() {
                 <div class="activity-left">
                     <div class="activity-avatar">${photo}</div>
                     <div class="activity-info">
-                        <div class="activity-name">${v.name}</div>
+                        <div class="activity-name">${v.name || 'Unknown'}</div>
                         <div class="activity-house"><i class="fas fa-home"></i> ${v.house || 'No house'}</div>
                     </div>
                 </div>
@@ -240,7 +238,6 @@ function renderCanvass(reset = true) {
 
     let voters = allVoters;
 
-    // Apply filter by status
     if (currentFilter !== 'all') {
         if (currentFilter === 'reached') {
             voters = voters.filter(v => v.reach_status === 'reached');
@@ -253,7 +250,6 @@ function renderCanvass(reset = true) {
         }
     }
 
-    // Apply search
     if (search) {
         voters = voters.filter(v => 
             (v.name || '').toLowerCase().includes(search) ||
@@ -262,12 +258,10 @@ function renderCanvass(reset = true) {
         );
     }
     
-    // Apply house filter
     if (house) {
         voters = voters.filter(v => (v.house || '') === house);
     }
     
-    // Apply party filter
     if (party !== 'all') {
         if (party === '') {
             voters = voters.filter(v => !v.party || v.party === '');
@@ -325,7 +319,6 @@ function renderCanvass(reset = true) {
 function createCard(v) {
     const status = getStatus(v);
     const isVote = v.vote_status === 'will-vote';
-    const isUndecided = v.vote_status === 'undecided';
     const isNotVote = v.vote_status === 'not-vote';
     const isReached = v.reach_status === 'reached';
     const isNotReached = v.reach_status === 'not-reached' || !v.reach_status;
@@ -350,17 +343,16 @@ function createCard(v) {
                         <span class="badge ${status.class}">${status.label}</span>
                         ${v.party ? `<span class="badge ${partyBadge}">${v.party}</span>` : ''}
                         <span class="badge ${isReached ? 'badge-info' : 'badge-warning'}">
-                            ${isReached ? '✅ Reached' : '🚪 Not Reached'}
+                            ${isReached ? 'Reached' : 'Not Reached'}
                         </span>
                     </div>
                 </div>
             </div>
             <div class="quick-status-btns">
-                <button class="btn-vote ${isVote ? 'active' : ''}" onclick="quickUpdate(${v.id}, 'vote_status', 'will-vote')">🗳️ Vote</button>
-                <button class="btn-undecided ${isUndecided ? 'active' : ''}" onclick="quickUpdate(${v.id}, 'vote_status', 'undecided')">🤔 Undecided</button>
-                <button class="btn-notvote ${isNotVote ? 'active' : ''}" onclick="quickUpdate(${v.id}, 'vote_status', 'not-vote')">❌ No Vote</button>
-                <button class="btn-reached ${isReached ? 'active' : ''}" onclick="quickUpdate(${v.id}, 'reach_status', 'reached')">✅ Reached</button>
-                <button class="btn-notreached ${isNotReached ? 'active' : ''}" onclick="quickUpdate(${v.id}, 'reach_status', 'not-reached')">🚪 Not Reached</button>
+                <button class="btn-vote ${isVote ? 'active' : ''}" onclick="quickUpdate(${v.id}, 'vote_status', 'will-vote')">Vote</button>
+                <button class="btn-notvote ${isNotVote ? 'active' : ''}" onclick="quickUpdate(${v.id}, 'vote_status', 'not-vote')">Not Vote</button>
+                <button class="btn-reached ${isReached ? 'active' : ''}" onclick="quickUpdate(${v.id}, 'reach_status', 'reached')">Reached</button>
+                <button class="btn-notreached ${isNotReached ? 'active' : ''}" onclick="quickUpdate(${v.id}, 'reach_status', 'not-reached')">Not Reached</button>
                 <button class="btn-call" onclick="event.stopPropagation();callVoter('${v.phone || ''}')"><i class="fas fa-phone"></i></button>
                 <button class="btn-whatsapp" onclick="event.stopPropagation();whatsappVoter('${v.phone || ''}', '${v.name || ''}')"><i class="fab fa-whatsapp"></i></button>
             </div>
@@ -368,6 +360,7 @@ function createCard(v) {
     `;
 }
 
+// FILTER CANVASS - Called from stat cards
 function filterCanvass(filter) {
     currentFilter = filter;
     document.querySelectorAll('.filter-tab').forEach(t => {
@@ -379,17 +372,18 @@ function filterCanvass(filter) {
     if (container) container.innerHTML = '';
     renderCanvass(true);
     
-    // Show toast message
+    // Navigate to canvass tab
+    navigateTo('canvass');
+    
     const filterLabels = {
         'all': 'All Voters',
-        'pending': '⏳ Pending',
-        'reached': '✅ Reached',
-        'will-vote': '🗳️ Will Vote',
-        'undecided': '🤔 Undecided',
-        'not-vote': '❌ Not Vote',
-        'not-reached': '🚪 Not Reached'
+        'pending': 'Pending',
+        'reached': 'Reached',
+        'will-vote': 'Will Vote',
+        'not-vote': 'Not Vote',
+        'not-reached': 'Not Reached'
     };
-    showToast(`Showing: ${filterLabels[filter] || filter}`, 'info');
+    showToast('Showing: ' + (filterLabels[filter] || filter), 'info');
 }
 
 function applyCanvassFilters() {
@@ -425,18 +419,15 @@ function updateFilterCounts() {
         pending: allVoters.filter(v => v.vote_status === 'pending' || !v.vote_status).length,
         reached: allVoters.filter(v => v.reach_status === 'reached').length,
         willVote: allVoters.filter(v => v.vote_status === 'will-vote').length,
-        undecided: allVoters.filter(v => v.vote_status === 'undecided').length,
         notVote: allVoters.filter(v => v.vote_status === 'not-vote').length,
         notReached: allVoters.filter(v => v.reach_status === 'not-reached' || !v.reach_status).length
     };
 
-    // Update all count elements
     const countMap = {
         countAll: counts.all,
         countPending: counts.pending,
         countReached: counts.reached,
         countWillVote: counts.willVote,
-        countUndecided: counts.undecided,
         countNotVote: counts.notVote,
         countNotReached: counts.notReached
     };
@@ -446,7 +437,6 @@ function updateFilterCounts() {
         if (el) el.textContent = countMap[id];
     });
 
-    // Update pending badges
     const pending = counts.pending;
     ['pendingBadge', 'pendingBadgeBottom', 'pendingQuickBadge'].forEach(id => {
         const el = safeEl(id);
@@ -457,47 +447,59 @@ function updateFilterCounts() {
     });
 }
 
-// QUICK UPDATE - This is the main action for field workers
+// QUICK UPDATE
 async function quickUpdate(id, field, value) {
     try {
         const voter = allVoters.find(v => v.id === id);
         if (!voter) return;
 
-        // Update locally
+        if (field === 'vote_status') {
+            const validStatuses = ['will-vote', 'not-vote', 'pending'];
+            if (!validStatuses.includes(value)) {
+                showToast('Invalid status value', 'error');
+                return;
+            }
+        }
+
         voter[field] = value;
 
-        // Update Supabase
         if (supabaseClient) {
             const table = window.CONFIG?.APP?.tableName || 'full_import';
             const { error } = await supabaseClient
                 .from(table)
                 .update({ [field]: value })
                 .eq('id', id);
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase error:', error);
+                showToast(error.message, 'error');
+                const revertVoter = allVoters.find(v => v.id === id);
+                if (revertVoter) {
+                    revertVoter[field] = field === 'vote_status' ? 'pending' : 'not-reached';
+                }
+                renderAll();
+                return;
+            }
         }
 
-        // Update the card UI
         const card = document.getElementById(`voter-${id}`);
         if (card) {
             const newCard = createCard(voter);
             card.outerHTML = newCard;
         }
 
-        // Refresh all views
         renderDashboard();
         renderAnalytics();
         updateFilterCounts();
         updateBadges();
 
-        // Show success message
         const label = field === 'vote_status' ? 
             STATUS[value]?.label || value : 
-            value === 'reached' ? '✅ Reached' : '🚪 Not Reached';
-        showToast(`✅ ${voter.name} - ${label}`, 'success');
+            value === 'reached' ? 'Reached' : 'Not Reached';
+        showToast(voter.name + ' - ' + label, 'success');
 
     } catch (e) {
         console.error('Update error:', e);
-        showToast('❌ Error updating: ' + e.message, 'error');
+        showToast('Error updating', 'error');
     }
 }
 
@@ -508,7 +510,6 @@ function openVoterModal(id) {
 
     const status = getStatus(v);
     const isVote = v.vote_status === 'will-vote';
-    const isUndecided = v.vote_status === 'undecided';
     const isNotVote = v.vote_status === 'not-vote';
     const isReached = v.reach_status === 'reached';
 
@@ -522,20 +523,20 @@ function openVoterModal(id) {
         <div class="modal-photo">
             ${v.photo_url ? `<img src="${v.photo_url}" onerror="this.parentElement.innerHTML='<span class=\\'placeholder\\'>👤</span>'" />` : `<span class="placeholder">👤</span>`}
         </div>
-        <div class="detail-row"><span>🏠 House</span><span>${v.house || '—'}</span></div>
-        <div class="detail-row"><span>📞 Phone</span><span>${v.phone || '—'}</span></div>
-        <div class="detail-row"><span>🎂 Age</span><span>${v.age || '—'}</span></div>
-        <div class="detail-row"><span>⚤ Gender</span><span>${v.sex || '—'}</span></div>
-        <div class="detail-row"><span>🏛️ Party</span><span>${v.party || '—'}</span></div>
-        <div class="detail-row"><span>🗳️ Status</span><span class="badge ${status.class}">${status.label}</span></div>
-        <div class="detail-row"><span>✅ Reach</span><span class="badge ${isReached ? 'badge-info' : 'badge-warning'}">${isReached ? '✅ Reached' : '🚪 Not Reached'}</span></div>
-        ${v.remarks ? `<div class="detail-row"><span>📝 Remarks</span><span>${v.remarks}</span></div>` : ''}
+        <div class="detail-row"><span>House</span><span>${v.house || '—'}</span></div>
+        <div class="detail-row"><span>Phone</span><span>${v.phone || '—'}</span></div>
+        <div class="detail-row"><span>Age</span><span>${v.age || '—'}</span></div>
+        <div class="detail-row"><span>Gender</span><span>${v.sex || '—'}</span></div>
+        <div class="detail-row"><span>Party</span><span>${v.party || '—'}</span></div>
+        <div class="detail-row"><span>Vote Status</span><span class="badge ${status.class}">${status.label}</span></div>
+        <div class="detail-row"><span>Reach</span><span class="badge ${isReached ? 'badge-info' : 'badge-warning'}">${isReached ? 'Reached' : 'Not Reached'}</span></div>
+        ${v.remarks ? `<div class="detail-row"><span>Remarks</span><span>${v.remarks}</span></div>` : ''}
 
         <div class="status-actions">
-            <button class="btn-vote ${isVote ? 'active' : ''}" onclick="quickUpdate(${v.id}, 'vote_status', 'will-vote');closeVoterModal();">🗳️ Will Vote</button>
-            <button class="btn-undecided ${isUndecided ? 'active' : ''}" onclick="quickUpdate(${v.id}, 'vote_status', 'undecided');closeVoterModal();">🤔 Undecided</button>
-            <button class="btn-notvote ${isNotVote ? 'active' : ''}" onclick="quickUpdate(${v.id}, 'vote_status', 'not-vote');closeVoterModal();">❌ Not Vote</button>
-            <button class="btn-reached ${isReached ? 'active' : ''}" onclick="quickUpdate(${v.id}, 'reach_status', 'reached');closeVoterModal();">✅ Reached</button>
+            <button class="btn-vote ${isVote ? 'active' : ''}" onclick="quickUpdate(${v.id}, 'vote_status', 'will-vote');closeVoterModal();">Will Vote</button>
+            <button class="btn-notvote ${isNotVote ? 'active' : ''}" onclick="quickUpdate(${v.id}, 'vote_status', 'not-vote');closeVoterModal();">Not Vote</button>
+            <button class="btn-reached ${isReached ? 'active' : ''}" onclick="quickUpdate(${v.id}, 'reach_status', 'reached');closeVoterModal();">Reached</button>
+            <button class="btn-notreached ${!isReached ? 'active' : ''}" onclick="quickUpdate(${v.id}, 'reach_status', 'not-reached');closeVoterModal();">Not Reached</button>
         </div>
     `;
     
@@ -571,24 +572,22 @@ function whatsappVoter(phone, name) {
 function renderAnalytics() {
     const total = allVoters.length;
     const willVote = allVoters.filter(v => v.vote_status === 'will-vote').length;
-    const undecided = allVoters.filter(v => v.vote_status === 'undecided').length;
     const notVote = allVoters.filter(v => v.vote_status === 'not-vote').length;
     const pending = allVoters.filter(v => v.vote_status === 'pending' || !v.vote_status).length;
     const reached = allVoters.filter(v => v.reach_status === 'reached').length;
     const mdp = allVoters.filter(v => v.party === 'MDP').length;
     const pnc = allVoters.filter(v => v.party === 'PNC').length;
 
-    // Progress Chart
     const ctx1 = safeEl('progressChart');
     if (ctx1 && typeof Chart !== 'undefined') {
         if (chart1) chart1.destroy();
         chart1 = new Chart(ctx1, {
             type: 'doughnut',
             data: {
-                labels: ['Will Vote', 'Undecided', 'Not Vote', 'Pending'],
+                labels: ['Will Vote', 'Not Vote', 'Pending'],
                 datasets: [{
-                    data: [willVote || 1, undecided || 1, notVote || 1, pending || 1],
-                    backgroundColor: ['#22C55E', '#8B5CF6', '#EF4444', '#F59E0B'],
+                    data: [willVote || 1, notVote || 1, pending || 1],
+                    backgroundColor: ['#7C3AED', '#EF4444', '#F59E0B'],
                     borderWidth: 2,
                     borderColor: '#FFFFFF',
                 }]
@@ -602,7 +601,6 @@ function renderAnalytics() {
         });
     }
 
-    // House Chart
     const ctx2 = safeEl('houseChart');
     if (ctx2 && typeof Chart !== 'undefined') {
         if (chart2) chart2.destroy();
@@ -610,14 +608,14 @@ function renderAnalytics() {
         const counts = {};
         allVoters.forEach(v => {
             const h = v.house || 'Unassigned';
-            if (!counts[h]) counts[h] = { will: 0, und: 0, not: 0 };
+            if (!counts[h]) counts[h] = { will: 0, not: 0, pending: 0 };
             if (v.vote_status === 'will-vote') counts[h].will++;
-            else if (v.vote_status === 'undecided') counts[h].und++;
             else if (v.vote_status === 'not-vote') counts[h].not++;
+            else counts[h].pending++;
         });
 
         const sorted = Object.entries(counts)
-            .sort((a, b) => (b[1].will + b[1].und + b[1].not) - (a[1].will + a[1].und + a[1].not))
+            .sort((a, b) => (b[1].will + b[1].not + b[1].pending) - (a[1].will + a[1].not + a[1].pending))
             .slice(0, 10);
 
         chart2 = new Chart(ctx2, {
@@ -625,9 +623,9 @@ function renderAnalytics() {
             data: {
                 labels: sorted.map(([h]) => h.length > 10 ? h.substring(0, 10) + '...' : h),
                 datasets: [
-                    { label: 'Will Vote', data: sorted.map(([, d]) => d.will), backgroundColor: '#22C55E', borderRadius: 2 },
-                    { label: 'Undecided', data: sorted.map(([, d]) => d.und), backgroundColor: '#8B5CF6', borderRadius: 2 },
+                    { label: 'Will Vote', data: sorted.map(([, d]) => d.will), backgroundColor: '#7C3AED', borderRadius: 2 },
                     { label: 'Not Vote', data: sorted.map(([, d]) => d.not), backgroundColor: '#EF4444', borderRadius: 2 },
+                    { label: 'Pending', data: sorted.map(([, d]) => d.pending), backgroundColor: '#F59E0B', borderRadius: 2 },
                 ]
             },
             options: {
@@ -642,23 +640,21 @@ function renderAnalytics() {
         });
     }
 
-    // Stats
     const stats = safeEl('analyticsStats');
     if (stats) {
         stats.innerHTML = `
             <div class="activity-item"><span>Total Voters</span><span>${total.toLocaleString()}</span></div>
-            <div class="activity-item"><span>✅ Reached</span><span>${reached.toLocaleString()} (${total ? Math.round(reached/total*100) : 0}%)</span></div>
-            <div class="activity-item"><span>🗳️ Will Vote</span><span>${willVote.toLocaleString()} (${total ? Math.round(willVote/total*100) : 0}%)</span></div>
-            <div class="activity-item"><span>🤔 Undecided</span><span>${undecided.toLocaleString()} (${total ? Math.round(undecided/total*100) : 0}%)</span></div>
-            <div class="activity-item"><span>❌ Not Vote</span><span>${notVote.toLocaleString()} (${total ? Math.round(notVote/total*100) : 0}%)</span></div>
-            <div class="activity-item"><span>⏳ Pending</span><span>${pending.toLocaleString()} (${total ? Math.round(pending/total*100) : 0}%)</span></div>
-            <div class="activity-item"><span style="color:var(--mdp-color);">🏛️ MDP</span><span style="color:var(--mdp-color);">${mdp.toLocaleString()} (${total ? Math.round(mdp/total*100) : 0}%)</span></div>
-            <div class="activity-item"><span style="color:var(--pnc-color);">🏛️ PNC</span><span style="color:var(--pnc-color);">${pnc.toLocaleString()} (${total ? Math.round(pnc/total*100) : 0}%)</span></div>
+            <div class="activity-item"><span>Reached</span><span>${reached.toLocaleString()} (${total ? Math.round(reached/total*100) : 0}%)</span></div>
+            <div class="activity-item"><span>Will Vote</span><span>${willVote.toLocaleString()} (${total ? Math.round(willVote/total*100) : 0}%)</span></div>
+            <div class="activity-item"><span>Not Vote</span><span>${notVote.toLocaleString()} (${total ? Math.round(notVote/total*100) : 0}%)</span></div>
+            <div class="activity-item"><span>Pending</span><span>${pending.toLocaleString()} (${total ? Math.round(pending/total*100) : 0}%)</span></div>
+            <div class="activity-item"><span style="color:#7C3AED;">MDP</span><span style="color:#7C3AED;">${mdp.toLocaleString()} (${total ? Math.round(mdp/total*100) : 0}%)</span></div>
+            <div class="activity-item"><span style="color:#1A56DB;">PNC</span><span style="color:#1A56DB;">${pnc.toLocaleString()} (${total ? Math.round(pnc/total*100) : 0}%)</span></div>
         `;
     }
 }
 
-// SETTINGS - Export only available here
+// SETTINGS
 function unlockSettings() {
     const pwd = safeEl('settingsPassword')?.value?.trim() || '';
     const error = safeEl('settingsError');
@@ -671,7 +667,7 @@ function unlockSettings() {
         if (lock) lock.style.display = 'none';
         if (content) content.style.display = 'block';
         renderSettings();
-        showToast('✅ Settings unlocked', 'success');
+        showToast('Settings unlocked', 'success');
     } else {
         if (error) { 
             error.classList.add('show'); 
@@ -719,7 +715,7 @@ function renderSettingsTable() {
             <div>
                 <div style="font-weight:600;">${v.name}</div>
                 <div style="font-size:12px;color:var(--text-muted);">
-                    🆔 ${v.national_id || '—'} · 🏠 ${v.house || '—'} · 📞 ${v.phone || '—'}
+                    ID ${v.national_id || '—'} · House ${v.house || '—'} · Phone ${v.phone || '—'}
                 </div>
             </div>
             <div class="record-actions">
@@ -730,13 +726,14 @@ function renderSettingsTable() {
     `).join('');
 }
 
-function openAddVoter() { showToast('📝 Add voter form coming soon', 'info'); }
-function openEditVoter(id) { openVoterModal(id); showToast('📝 Edit mode - click status buttons', 'info'); }
+function openAddVoter() { showToast('Add voter form coming soon', 'info'); }
+function openEditVoter(id) { openVoterModal(id); showToast('Edit mode - click status buttons', 'info'); }
+
 function deleteVoter(id) {
     if (!confirm('Delete this voter?')) return;
     allVoters = allVoters.filter(v => v.id !== id);
     renderAll();
-    showToast('🗑️ Deleted', 'success');
+    showToast('Deleted', 'success');
 }
 
 function clearAllData() {
@@ -744,13 +741,12 @@ function clearAllData() {
     if (!confirm('Clear all data?')) return;
     allVoters = [];
     renderAll();
-    showToast('🗑️ All data cleared', 'warning');
+    showToast('All data cleared', 'warning');
 }
 
-// EXPORT - Only available in Settings
 function exportData() {
     if (!settingsAuthenticated) {
-        showToast('❌ Please unlock settings first', 'warning');
+        showToast('Please unlock settings first', 'warning');
         return;
     }
     
@@ -766,15 +762,15 @@ function exportData() {
     a.download = `voters_${new Date().toISOString().slice(0,10)}.csv`;
     a.click();
     URL.revokeObjectURL(a.href);
-    showToast('📥 Export complete', 'success');
+    showToast('Export complete', 'success');
 }
 
 async function refreshData() {
-    showToast('🔄 Refreshing...', 'info');
+    showToast('Refreshing...', 'info');
     allVoters = [];
     await loadData();
     renderAll();
-    showToast('✅ Refreshed', 'success');
+    showToast('Refreshed', 'success');
 }
 
 function updateBadges() {

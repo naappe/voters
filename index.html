@@ -43,7 +43,7 @@
 
         <div class="sidebar-footer">
             <div class="user-profile">
-                <img src="https://ui-avatars.com/api/?name=Field+Worker&background=F5A623&color=fff&size=40" alt="User" />
+                <img src="https://ui-avatars.com/api/?name=Field+Worker&background=7C3AED&color=fff&size=40" alt="User" />
                 <div>
                     <div class="user-name">Field Worker</div>
                     <div class="user-role">Villimale Dhaaira</div>
@@ -90,27 +90,27 @@
                 </div>
                 <div class="stat-card color-success" onclick="filterCanvass('reached')">
                     <div class="stat-number" id="statReached">0</div>
-                    <div class="stat-label">✅ Reached</div>
+                    <div class="stat-label">Reached</div>
                     <div class="stat-percent" id="statReachedPercent">0%</div>
                 </div>
-                <div class="stat-card color-mdp" onclick="filterCanvass('will-vote')">
+                <div class="stat-card color-primary" onclick="filterCanvass('will-vote')">
                     <div class="stat-number" id="statWillVote">0</div>
-                    <div class="stat-label">🗳️ Will Vote</div>
+                    <div class="stat-label">Will Vote</div>
                     <div class="stat-percent" id="statWillVotePercent">0%</div>
-                </div>
-                <div class="stat-card color-warning" onclick="filterCanvass('undecided')">
-                    <div class="stat-number" id="statUndecided">0</div>
-                    <div class="stat-label">🤔 Undecided</div>
-                    <div class="stat-percent" id="statUndecidedPercent">0%</div>
                 </div>
                 <div class="stat-card color-danger" onclick="filterCanvass('not-vote')">
                     <div class="stat-number" id="statNotVote">0</div>
-                    <div class="stat-label">❌ Not Vote</div>
+                    <div class="stat-label">Not Vote</div>
                     <div class="stat-percent" id="statNotVotePercent">0%</div>
+                </div>
+                <div class="stat-card color-warning" onclick="filterCanvass('pending')">
+                    <div class="stat-number" id="statPending">0</div>
+                    <div class="stat-label">Pending</div>
+                    <div class="stat-percent" id="statPendingPercent">0%</div>
                 </div>
                 <div class="stat-card color-warning" onclick="filterCanvass('not-reached')">
                     <div class="stat-number" id="statNotReached">0</div>
-                    <div class="stat-label">🚪 Not Reached</div>
+                    <div class="stat-label">Not Reached</div>
                     <div class="stat-percent" id="statNotReachedPercent">0%</div>
                 </div>
             </div>
@@ -137,7 +137,7 @@
 
             <div class="card">
                 <div class="card-header">
-                    <h3><i class="fas fa-clock"></i> Recent Activity</h3>
+                    <h3><i class="fas fa-clock" style="color:#7C3AED;"></i> Recent Activity</h3>
                     <span class="view-all" onclick="navigateTo('canvass')">View all →</span>
                 </div>
                 <div id="recentActivity">
@@ -164,10 +164,6 @@
                 <button class="filter-tab" data-filter="will-vote" onclick="filterCanvass('will-vote')">
                     <i class="fas fa-vote-yea"></i> Will Vote
                     <span class="count" id="countWillVote">0</span>
-                </button>
-                <button class="filter-tab" data-filter="undecided" onclick="filterCanvass('undecided')">
-                    <i class="fas fa-thinking"></i> Undecided
-                    <span class="count" id="countUndecided">0</span>
                 </button>
                 <button class="filter-tab" data-filter="not-vote" onclick="filterCanvass('not-vote')">
                     <i class="fas fa-times-circle"></i> Not Vote
@@ -217,7 +213,7 @@
         <section id="section-analytics" class="section">
             <div class="card">
                 <div class="card-header">
-                    <h3><i class="fas fa-chart-pie"></i> Canvassing Progress</h3>
+                    <h3><i class="fas fa-chart-pie" style="color:#7C3AED;"></i> Canvassing Progress</h3>
                 </div>
                 <div class="chart-container" style="height:250px;">
                     <canvas id="progressChart"></canvas>
@@ -225,7 +221,7 @@
             </div>
             <div class="card">
                 <div class="card-header">
-                    <h3><i class="fas fa-chart-bar"></i> Vote Status by House</h3>
+                    <h3><i class="fas fa-chart-bar" style="color:#7C3AED;"></i> Vote Status by House</h3>
                 </div>
                 <div class="chart-container" style="height:250px;">
                     <canvas id="houseChart"></canvas>
@@ -233,7 +229,7 @@
             </div>
             <div class="card">
                 <div class="card-header">
-                    <h3><i class="fas fa-table"></i> Statistics</h3>
+                    <h3><i class="fas fa-table" style="color:#7C3AED;"></i> Statistics</h3>
                 </div>
                 <div id="analyticsStats">
                     <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
@@ -249,7 +245,7 @@
                     <h3>Admin Settings</h3>
                     <p>Enter admin password to manage voter data</p>
                     <input type="password" id="settingsPassword" placeholder="Enter admin password..." />
-                    <div class="error" id="settingsError">❌ Incorrect password</div>
+                    <div class="error" id="settingsError">Incorrect password</div>
                     <button onclick="unlockSettings()">Unlock Settings</button>
                 </div>
 
@@ -259,12 +255,12 @@
                             <div class="value" id="settingsTotal">0</div>
                             <div class="label">Total</div>
                         </div>
-                        <div class="settings-stat" style="border-left:3px solid var(--mdp-color);">
-                            <div class="value" style="color:var(--mdp-color);" id="settingsMDP">0</div>
+                        <div class="settings-stat" style="border-left:3px solid #7C3AED;">
+                            <div class="value" style="color:#7C3AED;" id="settingsMDP">0</div>
                             <div class="label">MDP</div>
                         </div>
-                        <div class="settings-stat" style="border-left:3px solid var(--pnc-color);">
-                            <div class="value" style="color:var(--pnc-color);" id="settingsPNC">0</div>
+                        <div class="settings-stat" style="border-left:3px solid #1A56DB;">
+                            <div class="value" style="color:#1A56DB;" id="settingsPNC">0</div>
                             <div class="label">PNC</div>
                         </div>
                         <div class="settings-stat">

@@ -2,436 +2,305 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Voter Management System</title>
-
-    <!-- Font Awesome -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Villimale Dhaaira - Canvassing</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+    
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-    <!-- ==========================================
-    SIDEBAR NAVIGATION
-    ========================================== -->
+    <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <i class="fas fa-vote-yea"></i>
-            <span>VoteTracker</span>
+            <span>Villimale</span>
+            <span>Dhaaira</span>
         </div>
 
         <nav class="sidebar-nav">
-            <a href="#" class="nav-item active" data-section="dashboard">
+            <button class="nav-item active" data-section="dashboard">
                 <i class="fas fa-chart-pie"></i>
                 <span>Dashboard</span>
-            </a>
-            <a href="#" class="nav-item" data-section="voters">
-                <i class="fas fa-users"></i>
-                <span>Voters</span>
-                <span class="badge" id="voterBadge">0</span>
-            </a>
-            <a href="#" class="nav-item" data-section="houses">
-                <i class="fas fa-home"></i>
-                <span>Houses</span>
-                <span class="badge" id="houseBadge">0</span>
-            </a>
-            <a href="#" class="nav-item" data-section="analytics">
+            </button>
+            <button class="nav-item" data-section="canvass">
+                <i class="fas fa-walking"></i>
+                <span>Canvass</span>
+                <span class="badge" id="pendingBadge" style="background:#ef4444;">0</span>
+            </button>
+            <button class="nav-item" data-section="analytics">
                 <i class="fas fa-chart-line"></i>
                 <span>Analytics</span>
-            </a>
-            <a href="#" class="nav-item" data-section="news">
-                <i class="fas fa-newspaper"></i>
-                <span>News</span>
-                <span class="badge" id="newsBadge" style="background:#ef4444;">0</span>
-            </a>
-            <a href="#" class="nav-item" data-section="settings">
+            </button>
+            <button class="nav-item" data-section="settings">
                 <i class="fas fa-cog"></i>
                 <span>Settings</span>
-            </a>
+            </button>
         </nav>
 
         <div class="sidebar-footer">
             <div class="user-profile">
-                <img src="https://ui-avatars.com/api/?name=Voter+Admin&background=3b82f6&color=fff&size=40" alt="User" />
+                <img src="https://ui-avatars.com/api/?name=Field+Worker&background=F5A623&color=fff&size=40" alt="User" />
                 <div>
-                    <div class="user-name">Voter Admin</div>
-                    <div class="user-role">Management</div>
+                    <div class="user-name">Field Worker</div>
+                    <div class="user-role">Villimale Dhaaira</div>
                 </div>
             </div>
-            <button class="btn-logout" id="logoutBtn">
+            <button class="btn-logout" onclick="logout()">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
             </button>
         </div>
     </aside>
 
-    <!-- ==========================================
-    MAIN CONTENT
-    ========================================== -->
-    <main class="main-content">
+    <!-- MAIN CONTENT -->
+    <main class="main-content" id="mainContent">
 
         <!-- Top Header -->
         <header class="top-header">
-            <button class="menu-toggle" id="menuToggle">
-                <i class="fas fa-bars"></i>
-            </button>
-            <h1 id="pageTitle">Dashboard</h1>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 id="pageTitle">
+                    Dashboard
+                    <span class="subtitle">Villimale Dhaaira</span>
+                </h1>
+            </div>
             <div class="header-actions">
                 <span class="date-display" id="dateDisplay"></span>
-                <button class="btn-refresh" onclick="refreshData()">
+                <button onclick="refreshData()" title="Refresh">
                     <i class="fas fa-sync"></i>
                 </button>
-                <div class="notification-bell">
+                <button class="notification-dot" onclick="navigateTo('canvass')" title="Pending">
                     <i class="fas fa-bell"></i>
-                    <span class="dot" id="notificationDot"></span>
-                </div>
+                </button>
             </div>
         </header>
 
-        <!-- ==========================================
-        SECTION: DASHBOARD
-        ========================================== -->
+        <!-- DASHBOARD -->
         <section id="section-dashboard" class="section active">
-
-            <!-- Stats Cards -->
             <div class="stats-grid">
-                <div class="stat-card" style="--stat-color: #3b82f6;">
-                    <div class="stat-icon"><i class="fas fa-users"></i></div>
-                    <div class="stat-info">
-                        <span class="stat-number" id="statTotal">0</span>
-                        <span class="stat-label">Total Voters</span>
-                    </div>
+                <div class="stat-card color-total" onclick="navigateTo('canvass')">
+                    <div class="stat-number" id="statTotal">0</div>
+                    <div class="stat-label">Total Voters</div>
                 </div>
-                <div class="stat-card" style="--stat-color: #10b981;">
-                    <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
-                    <div class="stat-info">
-                        <span class="stat-number" id="statReached">0</span>
-                        <span class="stat-label">Reached</span>
-                    </div>
+                <div class="stat-card color-success" onclick="filterCanvass('reached')">
+                    <div class="stat-number" id="statReached">0</div>
+                    <div class="stat-label">✅ Reached</div>
+                    <div class="stat-percent" id="statReachedPercent">0%</div>
                 </div>
-                <div class="stat-card" style="--stat-color: #f59e0b;">
-                    <div class="stat-icon"><i class="fas fa-vote-yea"></i></div>
-                    <div class="stat-info">
-                        <span class="stat-number" id="statWillVote">0</span>
-                        <span class="stat-label">Will Vote</span>
-                    </div>
+                <div class="stat-card color-mdp" onclick="filterCanvass('will-vote')">
+                    <div class="stat-number" id="statWillVote">0</div>
+                    <div class="stat-label">🗳️ Will Vote</div>
+                    <div class="stat-percent" id="statWillVotePercent">0%</div>
                 </div>
-                <div class="stat-card" style="--stat-color: #ef4444;">
-                    <div class="stat-icon"><i class="fas fa-times-circle"></i></div>
-                    <div class="stat-info">
-                        <span class="stat-number" id="statNotVote">0</span>
-                        <span class="stat-label">Not Vote</span>
-                    </div>
+                <div class="stat-card color-warning" onclick="filterCanvass('undecided')">
+                    <div class="stat-number" id="statUndecided">0</div>
+                    <div class="stat-label">🤔 Undecided</div>
+                    <div class="stat-percent" id="statUndecidedPercent">0%</div>
                 </div>
-                <div class="stat-card" style="--stat-color: #8b5cf6;">
-                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
-                    <div class="stat-info">
-                        <span class="stat-number" id="statPending">0</span>
-                        <span class="stat-label">Pending</span>
-                    </div>
+                <div class="stat-card color-danger" onclick="filterCanvass('not-vote')">
+                    <div class="stat-number" id="statNotVote">0</div>
+                    <div class="stat-label">❌ Not Vote</div>
+                    <div class="stat-percent" id="statNotVotePercent">0%</div>
+                </div>
+                <div class="stat-card color-warning" onclick="filterCanvass('not-reached')">
+                    <div class="stat-number" id="statNotReached">0</div>
+                    <div class="stat-label">🚪 Not Reached</div>
+                    <div class="stat-percent" id="statNotReachedPercent">0%</div>
                 </div>
             </div>
 
-            <!-- Top 7 Houses -->
-            <div class="section-card">
-                <div class="card-header">
-                    <h3><i class="fas fa-trophy" style="color:#f59e0b;"></i> Top 7 Houses</h3>
-                    <span class="card-subtitle" id="topHousesCount"></span>
-                </div>
-                <div class="top-houses-grid" id="topHousesGrid">
-                    <div class="loading">Loading...</div>
-                </div>
-            </div>
-
-            <!-- News Slider -->
-            <div class="section-card news-slider-section">
-                <div class="card-header">
-                    <h3><i class="fas fa-newspaper" style="color:#3b82f6;"></i> Latest News</h3>
-                    <span class="card-subtitle" id="newsCount"></span>
-                </div>
-                <div class="news-slider-container">
-                    <div class="news-slider" id="newsSlider">
-                        <div class="loading">Loading news...</div>
-                    </div>
-                    <button class="slider-btn prev-btn" id="prevNewsBtn"><i class="fas fa-chevron-left"></i></button>
-                    <button class="slider-btn next-btn" id="nextNewsBtn"><i class="fas fa-chevron-right"></i></button>
-                </div>
-                <div class="slider-dots" id="sliderDots"></div>
-            </div>
-
-            <!-- Charts Row -->
-            <div class="charts-row">
-                <div class="chart-card">
-                    <h3><i class="fas fa-chart-bar"></i> Vote Status by House</h3>
-                    <canvas id="voteChart"></canvas>
-                </div>
-                <div class="chart-card">
-                    <h3><i class="fas fa-chart-pie"></i> Overall Vote Distribution</h3>
-                    <canvas id="overallChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Quick Actions -->
             <div class="quick-actions">
-                <div class="quick-card" onclick="navigateTo('voters')">
-                    <i class="fas fa-users"></i>
-                    <span>View All Voters</span>
+                <button class="quick-action-btn primary" onclick="navigateTo('canvass')">
+                    <i class="fas fa-walking"></i>
+                    Start Canvassing
+                </button>
+                <button class="quick-action-btn" onclick="filterCanvass('pending')">
+                    <i class="fas fa-clock"></i>
+                    Pending Visits
+                    <span class="badge" id="pendingQuickBadge" style="background:#ef4444;color:white;border-radius:50%;padding:2px 8px;font-size:11px;">0</span>
+                </button>
+                <button class="quick-action-btn" onclick="navigateTo('analytics')">
+                    <i class="fas fa-chart-bar"></i>
+                    View Analytics
+                </button>
+                <button class="quick-action-btn" onclick="navigateTo('settings')">
+                    <i class="fas fa-cog"></i>
+                    Settings
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-clock"></i> Recent Activity</h3>
+                    <span class="view-all" onclick="navigateTo('canvass')">View all →</span>
                 </div>
-                <div class="quick-card" onclick="navigateTo('houses')">
-                    <i class="fas fa-home"></i>
-                    <span>View Houses</span>
-                </div>
-                <div class="quick-card" onclick="navigateTo('analytics')">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Analytics</span>
-                </div>
-                <div class="quick-card" onclick="navigateTo('news')">
-                    <i class="fas fa-newspaper"></i>
-                    <span>Latest News</span>
+                <div id="recentActivity">
+                    <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
                 </div>
             </div>
         </section>
 
-        <!-- ==========================================
-        SECTION: VOTERS
-        ========================================== -->
-        <section id="section-voters" class="section">
-
-            <!-- Voter Type Selector -->
-            <div class="voter-type-selector">
-                <button class="type-btn active" data-type="all" onclick="filterVoterType('all')">
-                    <i class="fas fa-users"></i> All Voters
-                    <span class="type-count" id="allCount">0</span>
+        <!-- CANVASS -->
+        <section id="section-canvass" class="section">
+            <div class="filter-tabs" id="canvassFilters">
+                <button class="filter-tab active" data-filter="all" onclick="filterCanvass('all')">
+                    <i class="fas fa-users"></i> All
+                    <span class="count" id="countAll">0</span>
                 </button>
-                <button class="type-btn" data-type="mdp" onclick="filterVoterType('mdp')">
-                    <i class="fas fa-flag"></i> MDP Voters
-                    <span class="type-count" id="mdpCount">0</span>
-                </button>
-                <button class="type-btn" data-type="reached" onclick="filterVoterType('reached')">
-                    <i class="fas fa-check-circle"></i> Reached
-                    <span class="type-count" id="reachedCount">0</span>
-                </button>
-                <button class="type-btn" data-type="will-vote" onclick="filterVoterType('will-vote')">
-                    <i class="fas fa-vote-yea"></i> Will Vote
-                    <span class="type-count" id="willVoteCount">0</span>
-                </button>
-                <button class="type-btn" data-type="pending" onclick="filterVoterType('pending')">
+                <button class="filter-tab" data-filter="pending" onclick="filterCanvass('pending')">
                     <i class="fas fa-clock"></i> Pending
-                    <span class="type-count" id="pendingCount">0</span>
+                    <span class="count" id="countPending" style="background:#ef4444;color:white;">0</span>
+                </button>
+                <button class="filter-tab" data-filter="reached" onclick="filterCanvass('reached')">
+                    <i class="fas fa-check-circle"></i> Reached
+                    <span class="count" id="countReached">0</span>
+                </button>
+                <button class="filter-tab" data-filter="will-vote" onclick="filterCanvass('will-vote')">
+                    <i class="fas fa-vote-yea"></i> Will Vote
+                    <span class="count" id="countWillVote">0</span>
+                </button>
+                <button class="filter-tab" data-filter="undecided" onclick="filterCanvass('undecided')">
+                    <i class="fas fa-thinking"></i> Undecided
+                    <span class="count" id="countUndecided">0</span>
+                </button>
+                <button class="filter-tab" data-filter="not-vote" onclick="filterCanvass('not-vote')">
+                    <i class="fas fa-times-circle"></i> Not Vote
+                    <span class="count" id="countNotVote">0</span>
+                </button>
+                <button class="filter-tab" data-filter="not-reached" onclick="filterCanvass('not-reached')">
+                    <i class="fas fa-door-closed"></i> Not Reached
+                    <span class="count" id="countNotReached">0</span>
                 </button>
             </div>
 
-            <!-- Filters -->
-            <div class="filters-bar">
+            <div class="advanced-filters">
                 <div class="search-group">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="Search by name, ID, or house..." />
+                    <input type="text" id="canvassSearch" placeholder="Search by name, ID, or house..." oninput="applyCanvassFilters()" />
                 </div>
-                <select id="houseFilter">
+                <select id="canvassHouseFilter" onchange="applyCanvassFilters()">
                     <option value="">All Houses</option>
                 </select>
-                <select id="genderFilter">
-                    <option value="">All Genders</option>
-                    <option value="M">Male</option>
-                    <option value="F">Female</option>
+                <select id="canvassPartyFilter" onchange="applyCanvassFilters()">
+                    <option value="all">All Parties</option>
+                    <option value="MDP">MDP</option>
+                    <option value="PNC">PNC</option>
+                    <option value="Other">Other</option>
+                    <option value="">Unassigned</option>
                 </select>
-
                 <div class="view-toggle">
-                    <button class="view-btn active" data-view="gallery" title="Gallery View">
-                        <i class="fas fa-th"></i>
-                    </button>
-                    <button class="view-btn" data-view="list" title="List View">
+                    <button class="view-btn active" data-view="list" onclick="setCanvassView('list')">
                         <i class="fas fa-list"></i>
                     </button>
+                    <button class="view-btn" data-view="grid" onclick="setCanvassView('grid')">
+                        <i class="fas fa-th"></i>
+                    </button>
                 </div>
-
-                <button class="btn btn-primary" id="applyBtn">
-                    <i class="fas fa-filter"></i> Apply
-                </button>
-                <button class="btn btn-outline" id="resetBtn">
-                    <i class="fas fa-undo"></i> Reset
-                </button>
-                <span class="result-count" id="resultCount">0 voters</span>
+                <span class="result-count" id="canvassResultCount">0 voters</span>
             </div>
 
-            <!-- Voter Grid / List -->
-            <div class="voter-container" id="voterContainer">
-                <div class="loading-state">Loading voters...</div>
+            <div id="canvassContainer">
+                <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading voters...</div>
             </div>
-
-            <!-- Pagination -->
-            <div class="pagination" id="pagination">
-                <button class="page-btn" id="prevPage" disabled>
-                    <i class="fas fa-chevron-left"></i> Previous
-                </button>
-                <span class="page-info" id="pageInfo">Page 1 of 1</span>
-                <button class="page-btn" id="nextPage" disabled>
-                    Next <i class="fas fa-chevron-right"></i>
-                </button>
+            <div id="canvassLoader" class="infinite-loader" style="display:none;">
+                <i class="fas fa-spinner fa-spin"></i> Loading more...
             </div>
         </section>
 
-        <!-- ==========================================
-        SECTION: HOUSES
-        ========================================== -->
-        <section id="section-houses" class="section">
-            <div class="section-card">
-                <div class="card-header">
-                    <h3><i class="fas fa-home"></i> All Houses</h3>
-                    <span class="card-subtitle" id="housesTotal"></span>
-                </div>
-                <div class="houses-list" id="housesList">
-                    <div class="loading">Loading houses...</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ==========================================
-        SECTION: ANALYTICS
-        ========================================== -->
+        <!-- ANALYTICS -->
         <section id="section-analytics" class="section">
-            <div class="analytics-grid">
-                <div class="section-card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-chart-bar"></i> Reach Status by House</h3>
-                    </div>
-                    <canvas id="analyticsChart" style="max-height:300px;"></canvas>
-                </div>
-
-                <div class="section-card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-chart-pie"></i> Gender Distribution</h3>
-                    </div>
-                    <canvas id="genderChart" style="max-height:300px;"></canvas>
-                </div>
-
-                <div class="section-card" style="grid-column: 1 / -1;">
-                    <div class="card-header">
-                        <h3><i class="fas fa-table"></i> Detailed Statistics</h3>
-                    </div>
-                    <div class="table-wrap">
-                        <table class="analytics-table">
-                            <thead>
-                                <tr>
-                                    <th>Metric</th>
-                                    <th>Count</th>
-                                    <th>Percentage</th>
-                                </tr>
-                            </thead>
-                            <tbody id="analyticsBody">
-                                <tr><td colspan="3" style="text-align:center;padding:40px;color:#94a3b8;">Loading...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ==========================================
-        SECTION: NEWS
-        ========================================== -->
-        <section id="section-news" class="section">
-            <div class="section-card">
+            <div class="card">
                 <div class="card-header">
-                    <h3><i class="fas fa-newspaper"></i> Latest News & Updates</h3>
-                    <span class="card-subtitle" id="newsPageCount"></span>
+                    <h3><i class="fas fa-chart-pie"></i> Canvassing Progress</h3>
                 </div>
-                <div class="news-grid" id="newsGrid">
-                    <div class="loading">Loading news...</div>
+                <div class="chart-container" style="height:250px;">
+                    <canvas id="progressChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-bar"></i> Vote Status by House</h3>
+                </div>
+                <div class="chart-container" style="height:250px;">
+                    <canvas id="houseChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-table"></i> Statistics</h3>
+                </div>
+                <div id="analyticsStats">
+                    <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
                 </div>
             </div>
         </section>
 
-        <!-- ==========================================
-        SECTION: SETTINGS
-        ========================================== -->
+        <!-- SETTINGS -->
         <section id="section-settings" class="section">
-            <!-- Settings Password Overlay -->
-            <div class="settings-password-overlay" id="settingsPasswordOverlay">
-                <div class="settings-password-box">
+            <div class="card">
+                <div class="settings-lock" id="settingsLock">
                     <div class="lock-icon"><i class="fas fa-lock"></i></div>
-                    <h2>Settings Access</h2>
-                    <p>Enter settings password to modify data</p>
-                    <form id="settingsPasswordForm">
-                        <input type="password" id="settingsPasswordInput" placeholder="Enter settings password..." autofocus />
-                        <div class="settings-error" id="settingsError">❌ Incorrect password</div>
-                        <button type="submit"><i class="fas fa-unlock"></i> Unlock Settings</button>
-                    </form>
+                    <h3>Admin Settings</h3>
+                    <p>Enter admin password to manage voter data</p>
+                    <input type="password" id="settingsPassword" placeholder="Enter admin password..." />
+                    <div class="error" id="settingsError">❌ Incorrect password</div>
+                    <button onclick="unlockSettings()">Unlock Settings</button>
                 </div>
-            </div>
 
-            <!-- Settings Content -->
-            <div class="settings-content" id="settingsContent" style="display:none;">
-                <div class="settings-grid">
-                    <div class="section-card">
-                        <div class="card-header">
-                            <h3><i class="fas fa-edit"></i> Data Management</h3>
-                            <span class="card-subtitle">Total: <span id="settingsTotal">0</span> records</span>
+                <div id="settingsContent" style="display:none;">
+                    <div class="settings-stats">
+                        <div class="settings-stat">
+                            <div class="value" id="settingsTotal">0</div>
+                            <div class="label">Total</div>
                         </div>
-                        <div class="settings-stats">
-                            <div class="settings-stat">
-                                <span class="label">Total Voters</span>
-                                <span class="value" id="settingsTotalCount">0</span>
-                            </div>
-                            <div class="settings-stat">
-                                <span class="label">MDP Voters</span>
-                                <span class="value" id="settingsMDPCount">0</span>
-                            </div>
-                            <div class="settings-stat">
-                                <span class="label">Reached</span>
-                                <span class="value" id="settingsReachedCount">0</span>
-                            </div>
-                            <div class="settings-stat">
-                                <span class="label">Will Vote</span>
-                                <span class="value" id="settingsWillVoteCount">0</span>
-                            </div>
+                        <div class="settings-stat" style="border-left:3px solid var(--mdp-color);">
+                            <div class="value" style="color:var(--mdp-color);" id="settingsMDP">0</div>
+                            <div class="label">MDP</div>
+                        </div>
+                        <div class="settings-stat" style="border-left:3px solid var(--pnc-color);">
+                            <div class="value" style="color:var(--pnc-color);" id="settingsPNC">0</div>
+                            <div class="label">PNC</div>
+                        </div>
+                        <div class="settings-stat">
+                            <div class="value" id="settingsReached">0</div>
+                            <div class="label">Reached</div>
                         </div>
                     </div>
 
-                    <div class="section-card">
-                        <div class="card-header">
-                            <h3><i class="fas fa-database"></i> Bulk Operations</h3>
-                        </div>
-                        <div class="settings-actions">
-                            <button class="btn btn-primary" onclick="exportData()">
-                                <i class="fas fa-download"></i> Export CSV
-                            </button>
-                            <button class="btn btn-outline" onclick="refreshData()">
-                                <i class="fas fa-sync"></i> Refresh Data
-                            </button>
-                            <button class="btn btn-danger" onclick="clearAllData()">
-                                <i class="fas fa-trash"></i> Clear All Data
-                            </button>
-                        </div>
+                    <div class="settings-actions">
+                        <button onclick="openAddVoter()" class="primary">
+                            <i class="fas fa-plus-circle"></i> Add Voter
+                        </button>
+                        <button onclick="exportData()">
+                            <i class="fas fa-download"></i> Export CSV
+                        </button>
+                        <button onclick="refreshData()">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                        <button onclick="clearAllData()" class="danger">
+                            <i class="fas fa-trash"></i> Clear All
+                        </button>
                     </div>
 
-                    <div class="section-card" style="grid-column: 1 / -1;">
-                        <div class="card-header">
-                            <h3><i class="fas fa-list"></i> All Records</h3>
-                            <span class="card-subtitle">Manage voter data</span>
+                    <div class="settings-table-wrap">
+                        <h4><i class="fas fa-list"></i> Manage Voters</h4>
+                        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+                            <input type="text" id="settingsSearch" placeholder="Search..." style="flex:1;min-width:150px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--bg-input);" oninput="renderSettingsTable()" />
+                            <select id="settingsPartyFilter" onchange="renderSettingsTable()" style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--bg-input);">
+                                <option value="all">All Parties</option>
+                                <option value="MDP">MDP</option>
+                                <option value="PNC">PNC</option>
+                                <option value="Other">Other</option>
+                            </select>
                         </div>
-                        <div class="table-wrap">
-                            <table class="settings-table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Name</th>
-                                        <th>House</th>
-                                        <th>Phone</th>
-                                        <th>Vote Status</th>
-                                        <th>Reach Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="settingsTableBody">
-                                    <tr><td colspan="7" style="text-align:center;padding:40px;color:#94a3b8;">Loading...</td></tr>
-                                </tbody>
-                            </table>
+                        <div id="settingsTable" style="max-height:500px;overflow-y:auto;">
+                            <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
                         </div>
                     </div>
                 </div>
@@ -440,92 +309,43 @@
 
     </main>
 
-    <!-- ==========================================
-    VOTER DETAIL MODAL
-    ========================================== -->
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal">
-            <button class="modal-close" id="modalClose">&times;</button>
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav" id="bottomNav">
+        <button class="nav-item active" data-section="dashboard">
+            <i class="fas fa-chart-pie"></i>
+            <span class="nav-label">Home</span>
+        </button>
+        <button class="nav-item" data-section="canvass">
+            <i class="fas fa-walking"></i>
+            <span class="nav-label">Canvass</span>
+            <span class="badge" id="pendingBadgeBottom">0</span>
+        </button>
+        <button class="nav-item" data-section="analytics">
+            <i class="fas fa-chart-line"></i>
+            <span class="nav-label">Stats</span>
+        </button>
+        <button class="nav-item" data-section="settings">
+            <i class="fas fa-cog"></i>
+            <span class="nav-label">Settings</span>
+        </button>
+    </nav>
 
-            <div class="modal-body">
-                <div class="modal-photo" id="modalPhoto">
-                    <span class="placeholder">📷</span>
-                </div>
-                <h2 class="modal-name" id="modalName">Name</h2>
-                <p class="modal-id" id="modalId">ID: ---</p>
-
-                <div class="modal-details">
-                    <div class="detail-item">
-                        <span class="detail-label">🏠 House</span>
-                        <span class="detail-value" id="modalHouse">—</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">📞 Phone</span>
-                        <span class="detail-value" id="modalPhone">—</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">🎂 Age</span>
-                        <span class="detail-value" id="modalAge">—</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">⚤ Gender</span>
-                        <span class="detail-value" id="modalSex">—</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">🏛️ Party</span>
-                        <span class="detail-value" id="modalParty">—</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">📊 Status</span>
-                        <span class="detail-value" id="modalStatus">—</span>
-                    </div>
-                </div>
-
-                <form id="modalForm">
-                    <div class="form-group">
-                        <label><i class="fas fa-phone"></i> Phone</label>
-                        <input type="text" id="modalPhoneInput" placeholder="Enter phone number..." />
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-check-circle"></i> Reach Status</label>
-                            <select id="modalReachStatus">
-                                <option value="not-reached">❌ Not Reached</option>
-                                <option value="reached">✅ Reached</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-vote-yea"></i> Vote Status</label>
-                            <select id="modalVoteStatus">
-                                <option value="pending">⏳ Pending</option>
-                                <option value="will-vote">🗳️ Will Vote</option>
-                                <option value="not-vote">❌ Not Vote</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-comment"></i> Remarks</label>
-                        <textarea id="modalRemarks" placeholder="Add notes..." rows="2"></textarea>
-                    </div>
-
-                    <div class="modal-actions">
-                        <button type="submit" class="btn btn-save">
-                            <i class="fas fa-save"></i> Save Changes
-                        </button>
-                        <button type="button" class="btn btn-outline" id="modalCloseBtn">
-                            <i class="fas fa-times"></i> Cancel
-                        </button>
-                    </div>
-                </form>
+    <!-- VOTER MODAL -->
+    <div class="modal-overlay" id="voterModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 id="modalTitle">Voter Status</h2>
+                <button onclick="closeVoterModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
             </div>
         </div>
     </div>
 
-    <!-- ==========================================
-    SCRIPTS - ORDER MATTERS!
-    ========================================== -->
+    <div id="toastContainer"></div>
+
     <script src="config.js"></script>
-    <script src="auth.js"></script>
     <script src="app.js"></script>
 
 </body>
